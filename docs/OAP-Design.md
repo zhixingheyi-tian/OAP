@@ -40,6 +40,6 @@ By using DCPMM (AEP) as index and data cache, we can provide a more cost effecti
 
 ### Cache
 - OAP cache use Off-Heap memory and stay out of JVM GC. Also OAP cache can use [DCPMM](https://www.intel.com/content/www/us/en/architecture-and-technology/optane-dc-persistent-memory.html) as high-performance, high-capacity, low-cost memory
-- Cache-Locality. OAP can schedule computing task to one executor which holds needed data in cache, by implementing a cache aware mechanism based on driver and executors communication.
+- Cache-Locality. OAP can schedule computing task to one executor which holds needed data in cache, by implementing a cache aware mechanism based on Spark driver and executors communication.
 - Cache Unit. A column in one RowGroup (equivalent to Stripe in ORC) of a column-oriented storage format file is loaded into a basic cache unit which is called "Fiber" in OAP.
 - Cache Eviction. OAP cache eviction uses LRU policy, and automatically cache and evict data with transparently to end user.
