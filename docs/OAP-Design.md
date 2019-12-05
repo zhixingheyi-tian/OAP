@@ -17,10 +17,10 @@ OAP is designed to leverage the user defined indices and smart fine-grained in-m
 
 ## OAP Architecture
 
-OAP (Optimized Analytical Package for Spark) acts as a plugin jar for Spark SQL.  
-OAP implements unified cache representation adaptors for three fileformat: parquet, orc and oap(parquet-like columnar storage data format defined by OAP)  
-OAP's two major optimization functionality index & cache base on unified adaptors.
-Using Spark ThriftServer can unleash the power of OAP. Of course, using bin/spark-sql, bin/spark-shell or bin/pyspark also can.
+- OAP (Optimized Analytical Package for Spark) acts as a plugin jar for Spark SQL.  
+- OAP implements unified cache representation adaptors for three fileformat: parquet, orc and oap(parquet-like columnar storage data format defined by OAP)  
+- OAP's two major optimization functionality index & cache base on unified adaptors.
+- Using Spark ThriftServer can unleash the power of OAP. Of course, using bin/spark-sql, bin/spark-shell or bin/pyspark also can.
 
 Generally, the server's DRAM is used as the cache medium. DCPMM can also be used as the cache mediu, it provide a more cost effective solution for high performance environment requirement.
 
