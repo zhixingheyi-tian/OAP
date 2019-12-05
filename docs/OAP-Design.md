@@ -22,7 +22,7 @@ OAP is designed to leverage the user defined indices and smart fine-grained in-m
 - OAP's two major optimization functionality index & cache base on unified adaptors.
 - Using Spark ThriftServer can unleash the power of OAP. Of course, using bin/spark-sql, bin/spark-shell or bin/pyspark also can.
 
-Generally, the server's DRAM is used as the cache medium. DCPMM can also be used as the cache mediu, it provide a more cost effective solution for high performance environment requirement.
+Generally, the server's DRAM is used as the cache medium. [DCPMM](https://www.intel.com/content/www/us/en/architecture-and-technology/optane-dc-persistent-memory.html) can also be used as the cache mediu, it provide a more cost effective solution for high performance environment requirement.
 
 The following diagram shows the OAP architect design 
 
@@ -34,12 +34,12 @@ By using DCPMM (AEP) as index and data cache, we can provide a more cost effecti
 ## OAP Components
 ### Index 
 
-![OAP-INDEX](./image/OAP-Index.PNG)
+- BTREE, BITMAP Index is an optimization that is widely used in traditional databases. We also adopt this two most used index types in OAP project. BTREE index(default in 0.2.0) is intended for datasets that has a lot of distinct values, and distributed randomly, such as telephone number or ID number. BitMap index is intended for datasets with a limited total amount of distinct values, such as state or age.
+- Statistics. Sometimes, reading index could bring extra cost for some queries。 So we also support four statistics(MinMax, Bloom Filter, SampleBase and PartByValue) to help filter. With statistics, we can make sure we only use index if we can possibly boost the execution.
+
 
 ### Cache
-Cache Aware
-![CACHE-AWARE](./image/Cache-Aware.PNG)
-
-### OAPFileFormat
-
-![OAPFILEFORMAT](./image/OAPFileFormat.PNG)
+- OAP cache use Off-Heap memory and stay out of JVM GC. Also OAP cache can use [DCPMM](https://www.intel.com/content/www/us/en/architecture-and-technology/optane-dc-persistent-memory.html) as high-performance, high-capacity, low-cost memory
+- Cache-Locality. OAP can schedule computing task to one executor which holds needed data in cache, by implementing a cache aware mechanism based on driver and executors communication.
+- Cache Unit. A column in one RowGroup (equivalent to Stripe in ORC) of a column-oriented storage format file is loaded into a basic cache unit which is called "Fiber" in OAP.
+- Cache Eviction. OAP cache eviction uses LRU policy, and automatically cache and evict data with transparently to end user.
