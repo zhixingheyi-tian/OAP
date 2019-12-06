@@ -1,0 +1,25 @@
+## Building
+OAP is built using [Apache Maven](http://maven.apache.org/).
+
+```
+mvn clean -q -Ppersistent-memory -DskipTests package
+```
+Must specify Profile `persistent-memory` when using Intel DCPMM.
+
+## Running Test
+
+To run all the tests, use
+```
+mvn clean -q -Ppersistent-memory test
+```
+To run any specific test suite, for example `OapDDLSuite`, use
+```
+mvn -DwildcardSuites=org.apache.spark.sql.execution.datasources.oap.OapDDLSuite test
+```
+To run test suites using `LocalClusterMode`, please refer to `SharedOapLocalClusterContext`
+
+**NOTE**: Log level of OAP unit tests currently default to ERROR, please override src/test/resources/log4j.properties if needed.
+
+## Enable Numa binding for DCPMM
+
+
