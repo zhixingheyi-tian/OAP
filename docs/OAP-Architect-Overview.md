@@ -35,7 +35,7 @@ The following diagram shows the OAP architect design
 ### Index 
 
 - BTREE, BITMAP Index is an optimization that is widely used in traditional databases. We also adopt this two most used index types in OAP project. BTREE index(default in 0.2.0) is intended for datasets that has a lot of distinct values, and distributed randomly, such as telephone number or ID number. BitMap index is intended for datasets with a limited total amount of distinct values, such as state or age.
-- Statistics. Sometimes, reading index could bring extra cost for some queries。 So we also support four statistics(MinMax, Bloom Filter, SampleBase and PartByValue) to help filter. With statistics, we can make sure we only use index if we can possibly boost the execution.
+- Statistics. Sometimes, reading index could bring extra cost for some queries. So we also support four statistics(MinMax, Bloom Filter, SampleBase and PartByValue) to help filter. With statistics, we can make sure we only use index if we can possibly boost the execution.
 
 
 ### Cache
