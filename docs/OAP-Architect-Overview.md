@@ -28,7 +28,7 @@ The following diagram shows the OAP architect design
 
 ![OAP-ARCHITECTURE](./image/OAP-Architecture.PNG)
 
-By using DCPMM (AEP) as index and data cache, we can provide a more cost effective solutions for high performance environment requirement.
+
 
 
 ## OAP Components
