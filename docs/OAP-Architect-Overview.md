@@ -22,7 +22,7 @@ OAP is designed to leverage the user defined indices and smart fine-grained in-m
 - OAP's two major optimization functionality index & cache base on unified adaptors.
 - Using Spark ThriftServer can unleash the power of OAP. Of course, using bin/spark-sql, bin/spark-shell or bin/pyspark also can.
 
-Generally, the server's DRAM is used as the cache medium. [DCPMM](https://www.intel.com/content/www/us/en/architecture-and-technology/optane-dc-persistent-memory.html) can also be used as the cache mediu, it provide a more cost effective solution for high performance environment requirement.
+Generally, the server's DRAM is used as the cache medium. [DCPMM](https://www.intel.com/content/www/us/en/architecture-and-technology/optane-dc-persistent-memory.html) can also be used as the cache medium, it provide a more cost effective solution for high performance environment requirement.
 
 The following diagram shows the OAP architect design 
 
