@@ -65,6 +65,18 @@ OAP modified 13 Spark source code files. As follows.
 ```
 You need to check if OAP's modified sources codes conflict with your customized Spark. If conflicts exist, you need to merge these codes and recompile Spark packages.
 
+## Revert "hashjoin metrics" for performance
+
+When using Community Spark-2.3.2, [SPARK-21052](https://issues.apache.org/jira/browse/SPARK-21052) causes performance degradation, so we create the [hashjoin-revert.patch](./hashjoin-revert.patch) to revert the "hashjoin metrics" for Spark-2.3.2.
+
+Download src for [Spark-2.3.2](https://archive.apache.org/dist/spark/spark-2.3.2/spark-2.3.2.tgz)
+Apply this patch and recompile Spark package.
+```
+git apply hashjoin-revert.patch
+```
+
+
+
 ## Enable Numa binding for DCPMM
 
 When using DCPMM as a cache medium, if you want to obtain higher performance gains, you can use our [Numa](https://www.kernel.org/doc/html/v4.18/vm/numa.html) Binding patch: [Spark.2.3.2.numa.patch](./Spark.2.3.2.numa.patch)
