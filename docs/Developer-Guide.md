@@ -3,6 +3,7 @@ OAP is built using [Apache Maven](http://maven.apache.org/).
 
 ```
 git clone -b branch-0.6-spark-2.3.x  https://github.com/Intel-bigdata/OAP.git
+cd OAP
 mvn clean -q -Ppersistent-memory -DskipTests package
 ```
 Must specify Profile `persistent-memory` when using Intel DCPMM.
