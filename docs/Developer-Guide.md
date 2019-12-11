@@ -68,3 +68,19 @@ You need to check if OAP's modified sources codes conflict with your customized 
 ## Enable Numa binding for DCPMM
 
 When using DCPMM as a cache medium, if you want to obtain higher performance gains, you can use our [Numa](https://www.kernel.org/doc/html/v4.18/vm/numa.html) Binding patch: [Spark.2.3.2.numa.patch](./Spark.2.3.2.numa.patch)
+
+Download src for [Spark-2.3.2](https://archive.apache.org/dist/spark/spark-2.3.2/spark-2.3.2.tgz)
+Apply this patch and recompile Spark package.
+```
+git apply  Spark.2.3.2.numa.patch
+```
+
+When deploying OAP to Spark, you need to add a configuration item to enable Numa binding.
+
+$SPARK_HOME/conf/spark-defaults.conf
+
+```
+spark.yarn.numa.enabled true 
+```
+Note: If you are using a customized Spark, there may be conflicts in applying the patch, you may need to manually resolve the conflicts.
+
