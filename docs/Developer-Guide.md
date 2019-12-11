@@ -21,6 +21,10 @@ To run test suites using `LocalClusterMode`, please refer to `SharedOapLocalClus
 
 **NOTE**: Log level of OAP unit tests currently default to ERROR, please override src/test/resources/log4j.properties if needed.
 
+## Integration with spark
+
+Although OAP (Optimized Analytical Package for Spark) acts as a plugin jar to Spark, there are still a few tricks to note when integration with Spark.
+
 ## Enable Numa binding for DCPMM
 
 
