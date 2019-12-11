@@ -75,7 +75,7 @@ Apply this patch and recompile Spark package.
 git apply  Spark.2.3.2.numa.patch
 ```
 
-When deploying OAP to Spark, you need to add a configuration item to enable Numa binding.
+When deploying OAP to Spark, please add a configuration item to enable Numa binding.
 
 $SPARK_HOME/conf/spark-defaults.conf
 
