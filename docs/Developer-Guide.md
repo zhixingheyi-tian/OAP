@@ -21,7 +21,7 @@ To run test suites using `LocalClusterMode`, please refer to `SharedOapLocalClus
 
 **NOTE**: Log level of OAP unit tests currently default to ERROR, please override src/test/resources/log4j.properties if needed.
 
-## Integration with spark
+## Integration with Spark
 
 Although OAP acts as a plugin jar to Spark, there are still a few tricks to note when integration with Spark. 
 We made a few improvements or changes to the Spark Source Codes for OAP features. So when integrating OAP on Spark, you need to check whether you are running an unmodified Community Spark or a modified customized Spark.
@@ -63,7 +63,7 @@ OAP modified 13 Spark source code files. As follows.
 		Add the get and set method for the changed protected variable.
 
 ```
-You need to check if OAP's modified sources codes conflict with your customized Spark.  If conflicts exist, you need to merge these codes and recompile Spark packages.
+You need to check if OAP's modified sources codes conflict with your customized Spark. If conflicts exist, you need to merge these codes and recompile Spark packages.
 
 ## Enable Numa binding for DCPMM
 
