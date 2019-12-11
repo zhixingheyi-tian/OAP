@@ -63,6 +63,7 @@ OAP modified 13 Spark source code files. As follows.
 		Add the get and set method for the changed protected variable.
 
 ```
+You need to check if OAP's modified sources codes conflict with your customized Spark.  If conflicts exist, you need to merge these codes and recompile Spark packages.
 
 ## Enable Numa binding for DCPMM
 
