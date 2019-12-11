@@ -78,7 +78,8 @@ It will be more complicated to integrate OAP with a customized version of Spark.
 
 The following file needs to be checked/compared:
 ```
-•	antlr4/org/apache/spark/sql/catalyst/parser/SqlBase.g4  
+
+- antlr4/org/apache/spark/sql/catalyst/parser/SqlBase.g4  
 Add index related command in this file, such as "create/show/drop oindex". 
 •	org/apache/spark/scheduler/DAGScheduler.scala           
 Add the oap cache location to aware task scheduling.
