@@ -63,7 +63,7 @@ OAP modified 13 Spark source code files. As follows.
 		Add the get and set method for the changed protected variable.
 
 ```
-You need to check if OAP's modified sources codes conflict with your customized Spark. If conflicts exist, you need to merge these codes and recompile Spark packages.
+You need to check if OAP's modified sources codes conflict with your customized Spark. If conflicts exist, you need to merge these codes and [rebuild](https://spark.apache.org/docs/latest/building-spark.html) Spark packages.
 
 ## Some patches to improve performance
 
@@ -73,7 +73,7 @@ When using Community Spark-2.3.2, [SPARK-21052](https://issues.apache.org/jira/b
 
 Download src for [Spark-2.3.2](https://archive.apache.org/dist/spark/spark-2.3.2/spark-2.3.2.tgz).
 
-Apply this patch and recompile Spark package.
+Apply this patch and [rebuild](https://spark.apache.org/docs/latest/building-spark.html) Spark package.
 ```
 git apply hashjoin-revert.patch
 ```
@@ -86,7 +86,7 @@ When using DCPMM as a cache medium, if you want to obtain higher performance gai
 
 Download src for [Spark-2.3.2](https://archive.apache.org/dist/spark/spark-2.3.2/spark-2.3.2.tgz).
 
-Apply this patch and recompile Spark package.
+Apply this patch and [rebuild](https://spark.apache.org/docs/latest/building-spark.html) Spark package.
 ```
 git apply  Spark.2.3.2.numa.patch
 ```
