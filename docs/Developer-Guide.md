@@ -1,26 +1,9 @@
-## Building
-OAP is built using [Apache Maven](http://maven.apache.org/).
+# OAP Developer Guide
 
-```
-git clone -b branch-0.6-spark-2.3.x  https://github.com/Intel-bigdata/OAP.git
-cd OAP
-mvn clean -q -Ppersistent-memory -DskipTests package
-```
-Must specify Profile `persistent-memory` when using Intel DCPMM.
+* [Integration with Spark](#integration-with-spark)
+* [OAP without DCPMM](#OAP-without-dcpmm)
+* [OAP with DCPMM](#OAP-with-dcpmm)
 
-## Running Test
-
-To run all the tests, use
-```
-mvn clean -q -Ppersistent-memory test
-```
-To run any specific test suite, for example `OapDDLSuite`, use
-```
-mvn -DwildcardSuites=org.apache.spark.sql.execution.datasources.oap.OapDDLSuite test
-```
-To run test suites using `LocalClusterMode`, please refer to `SharedOapLocalClusterContext`
-
-**NOTE**: Log level of OAP unit tests currently default to ERROR, please override src/test/resources/log4j.properties if needed.
 
 ## Integration with Spark
 
@@ -64,9 +47,69 @@ OAP modified 13 Spark source code files. As follows.
 		Add the get and set method for the changed protected variable.
 
 ```
-You need to check if OAP's modified sources codes conflict with your customized Spark. If conflicts exist, you need to merge these codes and [rebuild](https://spark.apache.org/docs/latest/building-spark.html) Spark packages.
+You need to check if OAP's modified sources codes conflict with your customized Spark. If conflicts exist, you need to merge these codes and rebulid OAP.
 
-## Some patches to improve performance
+
+
+## OAP without DCPMM
+
+#### Building
+OAP is built using [Apache Maven](http://maven.apache.org/).
+
+```
+git clone -b branch-0.6-spark-2.3.x  https://github.com/Intel-bigdata/OAP.git
+cd OAP
+mvn clean -DskipTests package
+```
+
+#### Running Test
+
+To run all the tests, use
+```
+mvn clean test
+```
+To run any specific test suite, for example `OapDDLSuite`, use
+```
+mvn -DwildcardSuites=org.apache.spark.sql.execution.datasources.oap.OapDDLSuite test
+```
+**NOTE**: Log level of OAP unit tests currently default to ERROR, please override src/test/resources/log4j.properties if needed.
+
+
+## OAP with DCPMM
+
+#### Prerequisites for building
+
+Please make sure the following Dependencies libraries are installed in the development environment.
+
+```
+cmake
+libpthread-stubs0-dev
+libnuma-dev
+memkind 
+numactl 
+numactl-devel
+```
+
+#### Building
+OAP is built using [Apache Maven](http://maven.apache.org/).
+
+```
+git clone -b branch-0.6-spark-2.3.x  https://github.com/Intel-bigdata/OAP.git
+cd OAP
+mvn clean -q -Ppersistent-memory -DskipTests package
+```
+
+#### Running Test
+
+To run all the tests, use
+```
+mvn clean -q -Ppersistent-memory test
+```
+To run any specific test suite, for example `OapDDLSuite`, use
+```
+mvn -DwildcardSuites=org.apache.spark.sql.execution.datasources.oap.OapDDLSuite test
+```
+**NOTE**: Log level of OAP unit tests currently default to ERROR, please override src/test/resources/log4j.properties if needed.
 
 #### Revert "hashjoin metrics" for performance
 
@@ -78,8 +121,6 @@ Apply this patch and [rebuild](https://spark.apache.org/docs/latest/building-spa
 ```
 git apply hashjoin-revert.patch
 ```
-
-
 
 #### Enable Numa binding for DCPMM
 
@@ -101,7 +142,7 @@ spark.yarn.numa.enabled true
 ```
 Note: If you are using a customized Spark, there may be conflicts in applying the patch, you may need to manually resolve the conflicts.
 
-## Use pre-built patched Spark packages 
+#### Use pre-built patched Spark packages 
 
 If you think it is cumbersome to apply patches, you can use our pre-built [spark-2.3.2-bin-hadoop2.7-patched.tgz](spark-2.3.2-bin-hadoop2.7-patched.tgz) to deploy directly.
 
