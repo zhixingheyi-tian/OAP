@@ -3,6 +3,7 @@
 * [Integration with Spark](#integration-with-spark)
 * [OAP without DCPMM](#OAP-without-dcpmm)
 * [OAP with DCPMM](#OAP-with-dcpmm)
+* [Enable Numa binding for DCPMM in Spark](#enable-numa-binding-for-dcpmm-in-spark)
 
 
 ## Integration with Spark
@@ -122,7 +123,7 @@ Apply this patch and [rebuild](https://spark.apache.org/docs/latest/building-spa
 git apply hashjoin-revert.patch
 ```
 
-#### Enable Numa binding for DCPMM
+## Enable Numa binding for DCPMM in Spark
 
 When using DCPMM as a cache medium, if you want to obtain higher performance gains, you can use our [Numa](https://www.kernel.org/doc/html/v4.18/vm/numa.html) Binding patch: [Spark.2.3.2.numa.patch](./Spark.2.3.2.numa.patch)
 
