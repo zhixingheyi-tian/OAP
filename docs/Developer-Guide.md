@@ -80,7 +80,7 @@ mvn -DwildcardSuites=org.apache.spark.sql.execution.datasources.oap.OapDDLSuite 
 
 #### Prerequisites for building
 
-Please make sure the following Dependencies libraries are installed in the development environment.
+Please make sure the following dependencies libraries are installed in the development environment.
 
 ```
 cmake
