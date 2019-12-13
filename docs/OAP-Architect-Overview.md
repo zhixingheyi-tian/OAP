@@ -74,7 +74,7 @@ OAP's two major optimization functionalities index & cache base on unified repre
 
 Both index and cache as ***OAP Optimizer & Execution*** are transparent for users. 
 
-Using Spark ThriftServer can unleash the power of OAP, because ThriftServer can launch a Spark Application which can cache hot data for long time in the background, and it also can accept query requests from different clients at the same time. Of course, using bin/spark-sql, bin/spark-shell or bin/pyspark can also use OAP, but usually only for interactive test situations.
+Using Spark ***ThriftServer*** can unleash the power of OAP, because ThriftServer can launch a Spark Application which can cache hot data for long time in the background, and it also can accept query requests from different clients at the same time. Of course, using bin/spark-sql, bin/spark-shell or bin/pyspark can also use OAP, but usually only for interactive test situations.
 
 
 
