@@ -20,7 +20,7 @@ OAP is designed to leverage the user defined indices and smart fine-grained in-m
 
 Interactive queries usually processes on a large data set but return a small portion of data filtering out with a specific condition. Customers are facing big challenges in meeting the performance requirement of interactive queries as we wants the result returned in seconds instead of tens of minutes or even hours. 
 
-For example, the following query want to filter out a very small result set from a huge fact table.
+For example, the following query wants to filter out a very small result set from a huge fact table.
 
 ```
 select query, term, userid, planid, unitid, winfoid, bmm_type, cmatch, charge, wctrl, target_url, audience_targeting_tag, is_url_targeting_adv, pluto_idea_type
