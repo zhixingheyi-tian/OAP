@@ -16,6 +16,20 @@ OAP is designed to leverage the user defined indices and smart fine-grained in-m
 
 ![OAP-INTRODUCTION](./image/OAP-Introduction.PNG)
 
+#### Usage Situation
+
+Interactive queries usually processes on a large data set but return a small portion of data filtering out with a specific condition. Customers are facing big challenges in meeting the performance requirement of interactive queries as we wants the result returned in seconds instead of tens of minutes or even hours. 
+
+For example, the following query want to filter out a very small result set from a huge fact table.
+
+```
+select query, term, userid, planid, unitid, winfoid, bmm_type, cmatch, charge, wctrl, target_url, audience_targeting_tag, is_url_targeting_adv, pluto_idea_type
+from basedata.fc_ad_wise
+where (event_day='20180701' and query='xxx' and winfoid='65648180412')
+limit 10
+```
+
+OAP is a package for Spark to speed up interactive queries (ad-hoc queries) by utilizing index and cache technologies. By properly using index and cache (DCPMM), the performance of some interactive queries can possible be improved by order of magnitude.
 
 ## OAP Features
 ### Index 
