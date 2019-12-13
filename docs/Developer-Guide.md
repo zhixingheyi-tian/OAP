@@ -7,8 +7,6 @@
 
 
 
-
-
 ## OAP Building without DCPMM
 
 #### Building
@@ -69,16 +67,6 @@ mvn -DwildcardSuites=org.apache.spark.sql.execution.datasources.oap.OapDDLSuite 
 ```
 **NOTE**: Log level of OAP unit tests currently default to ERROR, please override src/test/resources/log4j.properties if needed.
 
-#### Revert "hashjoin metrics" for performance
-
-When using Community Spark-2.3.2, [SPARK-21052](https://issues.apache.org/jira/browse/SPARK-21052) causes performance degradation, so we create the [hashjoin-revert.patch](./hashjoin-revert.patch) to revert the "hashjoin metrics" for Spark-2.3.2.
-
-Download src for [Spark-2.3.2](https://archive.apache.org/dist/spark/spark-2.3.2/spark-2.3.2.tgz).
-
-Apply this patch and [rebuild](https://spark.apache.org/docs/latest/building-spark.html) Spark package.
-```
-git apply hashjoin-revert.patch
-```
 
 ## Integration with Spark
 
