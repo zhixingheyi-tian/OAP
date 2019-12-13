@@ -39,19 +39,24 @@ OAP has two major Features:  index and cache, for boosting Spark SQL performance
 ### Index 
 
 Users can use SQL DDL(create/drop/refresh/check/show index) to use OAP index functionality.
-
 Once users create indexes using DDL, index files mainly composed of index data and statistics will be generated in a specific directory. 
-When queries are executed, analyzing index files for boost is transparent to users.
+When queries are executed, analyzing index files for boost performance is transparent to users.
 
 - BTREE, BITMAP Index is an optimization that is widely used in traditional databases. We also adopt this two most used index types in OAP project. BTREE index is intended for datasets that has a lot of distinct values, and distributed randomly, such as telephone number or ID number. BitMap index is intended for datasets with a limited total amount of distinct values, such as state or age.
-- Statistics. Sometimes, reading index could bring extra cost for some queries. So we also support four statistics (MinMax, Bloom Filter, SampleBase and PartByValue) to help filter. With statistics, we can make sure we only use index if we can possibly boost the execution.
+
+- Statistics locates in the Index file, after all index data written into index file.. Sometimes, reading index could bring extra cost for some queries. So we also support four statistics (MinMax, Bloom Filter, SampleBase and PartByValue) to help filter. With statistics, we can make sure we only use index if we can possibly boost the execution.
 
 
 ### Cache
-- OAP cache use Off-Heap memory and stay out of JVM GC. Also OAP cache can use [DCPMM](https://www.intel.com/content/www/us/en/architecture-and-technology/optane-dc-persistent-memory.html) as high-performance, high-capacity, low-cost memory
+
+Cache is another core feature of OAP. It is also transparent to users. OAP can load hot data frequently queried automatically, and evict data automatically according to the LRU policy when cache is full.
+OAP Cache has the following characteristics:
+
+- OAP cache uses Off-Heap memory and stay out of JVM GC. Also OAP cache can use [DCPMM](https://www.intel.com/content/www/us/en/architecture-and-technology/optane-dc-persistent-memory.html) as high-performance, high-capacity, low-cost memory
 - Cache-Locality. OAP can schedule computing task to one executor which holds needed data in cache, by implementing a cache aware mechanism based on Spark driver and executors communication.
 - Cache granularity. A column in one RowGroup (equivalent to Stripe in ORC) of a column-oriented storage format file is loaded into a basic cache unit which is called "Fiber" in OAP.
 - Cache Eviction. OAP cache eviction uses LRU policy, and automatically cache and evict data with transparently to end user.
+- Cache configured tables. OAP also supports caching specific tables by configuration items according to actual situations, these tables are usually hot tables that are often used.
 
 
 
