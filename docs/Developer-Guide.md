@@ -1,8 +1,8 @@
 # OAP Developer Guide
 
 * [Integration with Spark](#integration-with-spark)
-* [OAP without DCPMM](#OAP-without-dcpmm)
-* [OAP with DCPMM](#OAP-with-dcpmm)
+* [OAP Building without DCPMM](#OAP-Building-without-dcpmm)
+* [OAP Building with DCPMM](#OAP-Building-with-dcpmm)
 * [Enable Numa binding for DCPMM in Spark](#enable-numa-binding-for-dcpmm-in-spark)
 
 
@@ -52,7 +52,7 @@ You need to check if OAP's modified sources codes conflict with your customized 
 
 
 
-## OAP without DCPMM
+## OAP Building without DCPMM
 
 #### Building
 OAP is built using [Apache Maven](http://maven.apache.org/).
@@ -76,7 +76,7 @@ mvn -DwildcardSuites=org.apache.spark.sql.execution.datasources.oap.OapDDLSuite 
 **NOTE**: Log level of OAP unit tests currently default to ERROR, please override src/test/resources/log4j.properties if needed.
 
 
-## OAP with DCPMM
+## OAP Building with DCPMM
 
 #### Prerequisites for building
 
