@@ -40,6 +40,9 @@ If you want to use OAP with DCPMM,  you can follow the below build steps
 ###### Prerequisites for building
 
 You will need to install required packages on the build system:
+
+- gcc-c++
+- [cmake](https://help.directadmin.com/item.php?id=494)
 - [Menkind](https://github.com/memkind/memkind)
 
 
