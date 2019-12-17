@@ -120,8 +120,6 @@ $SPARK_HOME/conf/spark-defaults.conf
 ```
 spark.yarn.numa.enabled true 
 ```
-
-12. [Disclaimer](#disclaimer)
 Note: If you are using a customized Spark, there may be conflicts in applying the patch, you may need to manually resolve the conflicts.
 
 #### Use pre-built patched Spark packages 
