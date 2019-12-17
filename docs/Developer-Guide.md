@@ -11,11 +11,16 @@
 #### Building
 OAP is built using [Apache Maven](http://maven.apache.org/).
 
-To build OAP package.
+To clone OAP project, use
 
 ```
 git clone -b branch-0.6-spark-2.3.x  https://github.com/Intel-bigdata/OAP.git
 cd OAP
+```
+
+To build OAP package, use
+
+```
 mvn clean -DskipTests package
 ```
 
