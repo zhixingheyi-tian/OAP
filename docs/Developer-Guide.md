@@ -50,16 +50,19 @@ mvn clean -q -Ppersistent-memory -DskipTests package
 ## Integration with Spark
 
 Although OAP acts as a plugin jar to Spark, there are still a few tricks to note when integration with Spark. 
-We made a few improvements or changes to the Spark Source Codes for OAP features. So when integrating OAP on Spark, you need to check whether you are running an unmodified Community Spark or a modified customized Spark.
+Basically, OAP explored Spark extension & data source API to perform its core functionality. But there are other functionality aspects that cannot achieved by Spark extension and data source API. We made a few improvements or changes to the Spark internals to achieve the functionality. So when integrating OAP on Spark, you need to check whether you are running an unmodified Community Spark or a modified customized Spark.
 
 #### Integrate with Community Spark
 
-
-things will be much simple. We currently support Spark Spark 2.3.2 & Spark 2.4.1.
+If you are running an Community Spark, things will be much simple. Refer to [basic steps](basic steps)
 
 #### Integrate with customized Spark
 
-OAP modified 13 Spark source code files. As follows.
+It will be more complicated to integrate OAP with a customized Spark. Steps needed for this case is to check whether the OAP changes of Spark internals will conflict or override with your private changes. 
+- If no conflicts or overrides happens, the steps are the same as the steps of unmodified version of Spark described above. 
+- If conflicts or overrides happen, you need to have a merge plan of the source code to make sure the changes you made in a file appears in the corresponding file changed in OAP project. Once merged, please rebuild OAP.
+
+The following files needs to be checked/compared
 
 ```
 •	antlr4/org/apache/spark/sql/catalyst/parser/SqlBase.g4  
