@@ -105,15 +105,15 @@ The following files need to be checked/compared
 
 When using DCPMM as a cache medium, if you want to obtain higher performance gains, you can use our [Numa](https://www.kernel.org/doc/html/v4.18/vm/numa.html) Binding patch: [Spark.2.3.2.numa.patch](./Spark.2.3.2.numa.patch)
 
-Download src for [Spark-2.3.2](https://archive.apache.org/dist/spark/spark-2.3.2/spark-2.3.2.tgz).
+1. Download src for [Spark-2.3.2](https://archive.apache.org/dist/spark/spark-2.3.2/spark-2.3.2.tgz).
 
-Apply this patch and [rebuild](https://spark.apache.org/docs/latest/building-spark.html) Spark package.
+2. Apply this patch and [rebuild](https://spark.apache.org/docs/latest/building-spark.html) Spark package.
 
 ```
 git apply  Spark.2.3.2.numa.patch
 ```
 
-When deploying OAP to Spark, please add a configuration item to enable Numa binding.
+3. When deploying OAP to Spark, please add a configuration item to enable Numa binding.
 
 $SPARK_HOME/conf/spark-defaults.conf
 
