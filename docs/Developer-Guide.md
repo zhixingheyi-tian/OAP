@@ -1,7 +1,6 @@
 # OAP Developer Guide
 
-* [OAP Building without DCPMM](#OAP-Building-without-dcpmm)
-* [OAP Building with DCPMM](#OAP-Building-with-dcpmm)
+* [OAP Building](#OAP-Building)
 * [Integration with Spark](#integration-with-spark)
 * [Enable Numa binding for DCPMM in Spark](#enable-numa-binding-for-dcpmm-in-spark)
 
@@ -68,7 +67,7 @@ It will be more complicated to integrate OAP with a customized Spark. Steps need
 - If no conflicts or overrides happens, the steps are the same as the steps of unmodified version of Spark described above. 
 - If conflicts or overrides happen, you need to have a merge plan of the source code to make sure the changes you made in a file appears in the corresponding file changed in OAP project. Once merged, please rebuild OAP.
 
-The following files needs to be checked/compared
+The following files need to be checked/compared
 
 ```
 •	antlr4/org/apache/spark/sql/catalyst/parser/SqlBase.g4  
@@ -99,16 +98,17 @@ The following files needs to be checked/compared
 		Add the get and set method for the changed protected variable.
 
 ```
-You need to check if OAP's modified sources codes conflict with your customized Spark. If conflicts exist, you need to merge these codes and rebulid OAP.
-
 
 ## Enable Numa binding for DCPMM in Spark
+
+#### Rebuild Spark packages with Numa binding patch 
 
 When using DCPMM as a cache medium, if you want to obtain higher performance gains, you can use our [Numa](https://www.kernel.org/doc/html/v4.18/vm/numa.html) Binding patch: [Spark.2.3.2.numa.patch](./Spark.2.3.2.numa.patch)
 
 Download src for [Spark-2.3.2](https://archive.apache.org/dist/spark/spark-2.3.2/spark-2.3.2.tgz).
 
 Apply this patch and [rebuild](https://spark.apache.org/docs/latest/building-spark.html) Spark package.
+
 ```
 git apply  Spark.2.3.2.numa.patch
 ```
