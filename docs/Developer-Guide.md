@@ -11,6 +11,7 @@
 
 #### Building
 OAP is built using [Apache Maven](http://maven.apache.org/).
+
 To build OAP package.
 
 ```
@@ -38,7 +39,9 @@ If you want to use OAP with DCPMM,  you can follow the below build steps
 
 ###### Prerequisites for building
 
-Please install [Menkind](https://github.com/memkind/memkind) on the build system:
+You will need to install required packages on the build system:
+- [Menkind](https://github.com/memkind/memkind)
+
 
 ###### Building package
 
