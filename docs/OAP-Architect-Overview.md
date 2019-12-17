@@ -74,9 +74,9 @@ OAP (Optimized Analytical Package for Spark) acts as a plugin jar for Spark SQL.
   - Index can be created on one or multiple columns of data file. 
   - Currently, OAP only caches decompressed and decoding data, and will support raw data in the future. Generally, the server's DRAM is used as the cache medium. [DCPMM](https://www.intel.com/content/www/us/en/architecture-and-technology/optane-dc-persistent-memory.html) can also be used as the cache medium, it will provide a more cost effective solution for high performance environment requirement.
 
-- Both index and cache as ***OAP Optimizer & Execution*** are transparent for users. See the section on the [OAP Features](#OAP-Features) for details
+- Both index and cache as ***OAP Optimizer & Execution*** are transparent for users. See the [OAP Features](#OAP-Features) section for details.
 
-Using Spark ***ThriftServer*** can unleash the power of OAP, because ThriftServer can launch a Spark Application which can cache hot data for long time in the background, and it also can accept query requests from different clients at the same time. Of course, using bin/spark-sql, bin/spark-shell or bin/pyspark can also use OAP, but usually only for interactive test situations.
+- Using Spark ***ThriftServer*** can unleash the power of OAP, because ThriftServer can launch a Spark Application which can cache hot data for long time in the background, and it also can accept query requests from different clients at the same time. Of course, using bin/spark-sql, bin/spark-shell or bin/pyspark can also use OAP, but usually only for interactive test situations.
 
 
 
