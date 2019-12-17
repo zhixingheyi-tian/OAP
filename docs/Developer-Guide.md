@@ -7,10 +7,11 @@
 
 
 
-## OAP Building without DCPMM
+## OAP Building
 
 #### Building
 OAP is built using [Apache Maven](http://maven.apache.org/).
+To build OAP package.
 
 ```
 git clone -b branch-0.6-spark-2.3.x  https://github.com/Intel-bigdata/OAP.git
@@ -31,41 +32,19 @@ mvn -DwildcardSuites=org.apache.spark.sql.execution.datasources.oap.OapDDLSuite 
 **NOTE**: Log level of OAP unit tests currently default to ERROR, please override src/test/resources/log4j.properties if needed.
 
 
-## OAP Building with DCPMM
+#### OAP Building with DCPMM
 
-#### Prerequisites for building
+If you want to use OAP with DCPMM,  you can follow the below build steps 
 
-Please make sure the following dependencies libraries are installed in the development environment.
+###### Prerequisites for building
 
-```
-cmake
-libpthread-stubs0-dev
-libnuma-dev
-memkind 
-numactl 
-numactl-devel
-```
+Please install [Menkind](https://github.com/memkind/memkind) on the build system:
 
-#### Building
-OAP is built using [Apache Maven](http://maven.apache.org/).
+###### Building package
 
 ```
-git clone -b branch-0.6-spark-2.3.x  https://github.com/Intel-bigdata/OAP.git
-cd OAP
 mvn clean -q -Ppersistent-memory -DskipTests package
 ```
-
-#### Running Test
-
-To run all the tests, use
-```
-mvn clean -q -Ppersistent-memory test
-```
-To run any specific test suite, for example `OapDDLSuite`, use
-```
-mvn -DwildcardSuites=org.apache.spark.sql.execution.datasources.oap.OapDDLSuite test
-```
-**NOTE**: Log level of OAP unit tests currently default to ERROR, please override src/test/resources/log4j.properties if needed.
 
 
 ## Integration with Spark
@@ -75,7 +54,8 @@ We made a few improvements or changes to the Spark Source Codes for OAP features
 
 #### Integrate with Community Spark
 
-You don't need to care about anything. Just refer to xxx
+
+things will be much simple. We currently support Spark Spark 2.3.2 & Spark 2.4.1.
 
 #### Integrate with customized Spark
 
