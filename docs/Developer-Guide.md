@@ -47,7 +47,7 @@ You will need to install required packages on the build system:
 
 - gcc-c++
 - [cmake](https://help.directadmin.com/item.php?id=494)
-- [Menkind](https://github.com/memkind/memkind)
+- [Memkind](https://github.com/memkind/memkind)
 
 
 ###### Building package
