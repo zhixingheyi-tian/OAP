@@ -31,7 +31,7 @@ class OapExtensions extends (SparkSessionExtensions => Unit) {
     extensions.injectPlannerStrategy(_ => OapFileSourceStrategy)
     // Oap Custom SqlParser.
     extensions.injectParser((session, _) => {
-      OapEnv.initWithoutCreatingOapSession()
+      OapEnv.initWithoutCreatingSparkSession()
       new OapSparkSqlParser(session)
     })
   }
