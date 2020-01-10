@@ -293,6 +293,21 @@ class FilterSuite extends QueryTest with SharedOapContext with BeforeAndAfterEac
     }
   }
 
+  test("filtering orc using binary cache") {
+    val data: Seq[(Int, String)] = (1 to 300).map { i => (i, s"this is test $i") }
+    data.toDF("key", "value").createOrReplaceTempView("t")
+    sql("insert overwrite table orc_test select * from t")
+    withIndex(TestIndex("orc_test", "index1")) {
+      sql("create oindex index1 on orc_test (a)")
+      withSQLConf(OapConf.OAP_ORC_BINARY_DATA_CACHE_ENABLED.key -> "true") {
+        sql("SELECT * FROM orc_test WHERE b = '1'")
+
+        checkAnswer(sql("SELECT * FROM orc_test WHERE  b = 'this is test 2'"),
+          Row(2, "this is test 2") :: Nil)
+      }
+    }
+  }
+
   test("test refresh in parquet format on same partition") {
     val data: Seq[(Int, Int)] = (1 to 100).map { i => (i, i) }
     data.toDF("key", "value").createOrReplaceTempView("t")

@@ -365,6 +365,13 @@ object OapConf {
       .booleanConf
       .createWithDefault(false)
 
+  val OAP_ORC_BINARY_DATA_CACHE_ENABLED =
+    SqlConfAdapter.buildConf("spark.sql.oap.orc.binary.cache.enable")
+      .internal()
+      .doc("To indicate if enable orc binary data cache, default false")
+      .booleanConf
+      .createWithDefault(false)
+
   val OAP_ORC_DATA_CACHE_ENABLED =
     SqlConfAdapter.buildConf("spark.sql.oap.orc.data.cache.enable")
       .internal()
