@@ -17,15 +17,41 @@
  */
 package org.apache.orc.impl;
 
+import org.apache.orc.CompressionKind;
+
 import java.io.IOException;
 import java.math.BigDecimal;
 import java.sql.Date;
 import java.sql.Timestamp;
-import java.util.*;
+import java.util.ArrayList;
+import java.util.Arrays;
+import java.util.HashMap;
+import java.util.List;
+import java.util.Map;
+import java.util.TimeZone;
 
+import org.apache.orc.OrcFile;
+import org.apache.orc.util.BloomFilter;
+import org.apache.orc.util.BloomFilterIO;
+import org.apache.orc.BooleanColumnStatistics;
+import org.apache.orc.ColumnStatistics;
+import org.apache.orc.CompressionCodec;
+import org.apache.orc.DataReader;
+import org.apache.orc.DateColumnStatistics;
+import org.apache.orc.DecimalColumnStatistics;
+import org.apache.orc.DoubleColumnStatistics;
+import org.apache.orc.IntegerColumnStatistics;
+import org.apache.orc.OrcConf;
+import org.apache.orc.OrcProto;
+import org.apache.orc.Reader;
+import org.apache.orc.RecordReader;
+import org.apache.orc.StringColumnStatistics;
+import org.apache.orc.StripeInformation;
+import org.apache.orc.TimestampColumnStatistics;
+import org.apache.orc.TypeDescription;
+import org.slf4j.Logger;
+import org.slf4j.LoggerFactory;
 import org.apache.hadoop.fs.Path;
-import org.apache.hadoop.io.Text;
-import org.apache.orc.*;
 import org.apache.orc.storage.common.io.DiskRange;
 import org.apache.orc.storage.common.io.DiskRangeList;
 import org.apache.orc.storage.common.io.DiskRangeList.CreateHelper;
@@ -34,50 +60,46 @@ import org.apache.orc.storage.ql.exec.vector.VectorizedRowBatch;
 import org.apache.orc.storage.ql.io.sarg.PredicateLeaf;
 import org.apache.orc.storage.ql.io.sarg.SearchArgument;
 import org.apache.orc.storage.ql.io.sarg.SearchArgument.TruthValue;
-import org.apache.orc.storage.ql.util.TimestampUtils;
 import org.apache.orc.storage.serde2.io.DateWritable;
 import org.apache.orc.storage.serde2.io.HiveDecimalWritable;
-import org.apache.orc.util.BloomFilter;
-import org.apache.orc.util.BloomFilterIO;
-import org.slf4j.Logger;
-import org.slf4j.LoggerFactory;
+import org.apache.orc.storage.ql.util.TimestampUtils;
+import org.apache.hadoop.io.Text;
 
-public class RecordReaderBinaryImpl implements RecordReader {
-  static final Logger LOG = LoggerFactory.getLogger(RecordReaderBinaryImpl.class);
+public class RecordReaderImpl implements RecordReader {
+  static final Logger LOG = LoggerFactory.getLogger(RecordReaderImpl.class);
   private static final boolean isLogDebugEnabled = LOG.isDebugEnabled();
   private static final Object UNKNOWN_VALUE = new Object();
   protected final Path path;
   private final long firstRow;
   private final List<StripeInformation> stripes =
       new ArrayList<StripeInformation>();
-  private OrcProto.StripeFooter stripeFooter;
+  protected OrcProto.StripeFooter stripeFooter;
   private final long totalRowCount;
   protected final TypeDescription schema;
-  private final List<OrcProto.Type> types;
-  private final int bufferSize;
+  protected final List<OrcProto.Type> types;
+  protected final int bufferSize;
   private final SchemaEvolution evolution;
   // the file included columns indexed by the file's column ids.
-  private final boolean[] fileIncluded;
-  private final long rowIndexStride;
-  private long rowInStripe = 0;
-  private int currentStripe = -1;
+  protected final boolean[] fileIncluded;
+  protected final long rowIndexStride;
+  protected long rowInStripe = 0;
+  protected int currentStripe = -1;
   private long rowBaseInStripe = 0;
-  private long rowCountInStripe = 0;
-  private final Map<StreamName, InStream> streams =
+  protected long rowCountInStripe = 0;
+  protected final Map<StreamName, InStream> streams =
       new HashMap<StreamName, InStream>();
   DiskRangeList bufferChunks = null;
-  private final TreeReaderFactory.TreeReader reader;
+  protected final TreeReaderFactory.TreeReader reader;
   private final OrcProto.RowIndex[] indexes;
   private final OrcProto.BloomFilterIndex[] bloomFilterIndices;
   private final OrcProto.Stream.Kind[] bloomFilterKind;
   private final SargApplier sargApp;
   // an array about which row groups aren't skipped
-  private boolean[] includedRowGroups = null;
-  private final DataReader dataReader;
+  protected boolean[] includedRowGroups = null;
+  protected DataReader dataReader;
   private final boolean ignoreNonUtf8BloomFilter;
   private final OrcFile.WriterVersion writerVersion;
-
-
+  private final int maxDiskRangeChunkLimit;
 
   /**
    * Given a list of column names, find the given column and return the index.
@@ -155,8 +177,8 @@ public class RecordReaderBinaryImpl implements RecordReader {
     return result;
   }
 
-  public RecordReaderBinaryImpl(ReaderImpl fileReader,
-                                Reader.Options options) throws IOException {
+  protected RecordReaderImpl(ReaderImpl fileReader,
+                             Reader.Options options) throws IOException {
     this.writerVersion = fileReader.getWriterVersion();
     if (options.getSchema() == null) {
       if (LOG.isInfoEnabled()) {
@@ -210,22 +232,25 @@ public class RecordReaderBinaryImpl implements RecordReader {
         rows += stripe.getNumberOfRows();
       }
     }
-
+    this.maxDiskRangeChunkLimit = OrcConf.ORC_MAX_DISK_RANGE_CHUNK_LIMIT.getInt(fileReader.conf);
     Boolean zeroCopy = options.getUseZeroCopy();
     if (zeroCopy == null) {
       zeroCopy = OrcConf.USE_ZEROCOPY.getBoolean(fileReader.conf);
     }
-
-    this.dataReader = RecordReaderBinaryUtils.createDefaultDataReader(
-        DataReaderProperties.builder()
-            .withBufferSize(bufferSize)
-            .withCompression(fileReader.compressionKind)
-            .withFileSystem(fileReader.fileSystem)
-            .withPath(fileReader.path)
-            .withTypeCount(types.size())
-            .withZeroCopy(zeroCopy)
-            .build());
-    this.dataReader.open();
+    if (options.getDataReader() != null) {
+      this.dataReader = options.getDataReader().clone();
+    } else {
+      this.dataReader = RecordReaderUtils.createDefaultDataReader(
+          DataReaderProperties.builder()
+              .withBufferSize(bufferSize)
+              .withCompression(fileReader.compressionKind)
+              .withFileSystem(fileReader.getFileSystem())
+              .withPath(fileReader.path)
+              .withTypeCount(types.size())
+              .withZeroCopy(zeroCopy)
+              .withMaxDiskRangeChunkLimit(maxDiskRangeChunkLimit)
+              .build());
+    }
     firstRow = skippedRows;
     totalRowCount = rows;
     Boolean skipCorrupt = options.getSkipCorruptRecords();
@@ -246,7 +271,14 @@ public class RecordReaderBinaryImpl implements RecordReader {
     indexes = new OrcProto.RowIndex[types.size()];
     bloomFilterIndices = new OrcProto.BloomFilterIndex[types.size()];
     bloomFilterKind = new OrcProto.Stream.Kind[types.size()];
-    advanceToNextRow(reader, 0L, true);
+
+    try {
+      advanceToNextRow(reader, 0L, true);
+    } catch (IOException e) {
+      // Try to close since this happens in constructor.
+      close();
+      throw e;
+    }
   }
 
   public static final class PositionProviderImpl implements PositionProvider {
@@ -495,8 +527,7 @@ public class RecordReaderBinaryImpl implements RecordReader {
                                              boolean useUTCTimestamp) {
     Object minValue = getMin(stats, useUTCTimestamp);
     Object maxValue = getMax(stats, useUTCTimestamp);
-    return evaluatePredicateRange(predicate, minValue, maxValue, stats.hasNull(),
-            bloomFilter, useUTCTimestamp);
+    return evaluatePredicateRange(predicate, minValue, maxValue, stats.hasNull(), bloomFilter, useUTCTimestamp);
   }
 
   static TruthValue evaluatePredicateRange(PredicateLeaf predicate, Object min,
@@ -521,15 +552,14 @@ public class RecordReaderBinaryImpl implements RecordReader {
 
     result = evaluatePredicateMinMax(predicate, predObj, minValue, maxValue, hasNull);
     if (shouldEvaluateBloomFilter(predicate, result, bloomFilter)) {
-      return evaluatePredicateBloomFilter(predicate, predObj, bloomFilter,
-              hasNull, useUTCTimestamp);
+      return evaluatePredicateBloomFilter(predicate, predObj, bloomFilter, hasNull, useUTCTimestamp);
     } else {
       return result;
     }
   }
 
   private static boolean shouldEvaluateBloomFilter(PredicateLeaf predicate,
-                                                   TruthValue result, BloomFilter bloomFilter) {
+      TruthValue result, BloomFilter bloomFilter) {
     // evaluate bloom filter only when
     // 1) Bloom filter is available
     // 2) Min/Max evaluation yield YES or MAYBE
@@ -545,9 +575,9 @@ public class RecordReaderBinaryImpl implements RecordReader {
   }
 
   private static TruthValue evaluatePredicateMinMax(PredicateLeaf predicate, Object predObj,
-                                                    Object minValue,
-                                                    Object maxValue,
-                                                    boolean hasNull) {
+      Object minValue,
+      Object maxValue,
+      boolean hasNull) {
     Location loc;
 
     switch (predicate.getOperator()) {
@@ -652,8 +682,7 @@ public class RecordReaderBinaryImpl implements RecordReader {
         for (Object arg : predicate.getLiteralList()) {
           // if atleast one value in IN list exist in bloom filter, qualify the row group/stripe
           Object predObjItem = getBaseObjectForComparison(predicate.getType(), arg);
-          TruthValue result = checkInBloomFilter(bloomFilter, predObjItem,
-                  hasNull, useUTCTimestamp);
+          TruthValue result = checkInBloomFilter(bloomFilter, predObjItem, hasNull, useUTCTimestamp);
           if (result == TruthValue.YES_NO_NULL || result == TruthValue.YES_NO) {
             return result;
           }
@@ -664,8 +693,7 @@ public class RecordReaderBinaryImpl implements RecordReader {
     }
   }
 
-  private static TruthValue checkInBloomFilter(BloomFilter bf, Object predObj,
-                                               boolean hasNull, boolean useUTCTimestamp) {
+  private static TruthValue checkInBloomFilter(BloomFilter bf, Object predObj, boolean hasNull, boolean useUTCTimestamp) {
     TruthValue result = hasNull ? TruthValue.NO_NULL : TruthValue.NO;
 
     if (predObj instanceof Long) {
@@ -688,8 +716,7 @@ public class RecordReaderBinaryImpl implements RecordReader {
           result = TruthValue.YES_NO_NULL;
         }
       } else {
-        if (bf.testLong(SerializationUtils.convertToUtc(TimeZone.getDefault(),
-                ((Timestamp) predObj).getTime()))) {
+        if (bf.testLong(SerializationUtils.convertToUtc(TimeZone.getDefault(), ((Timestamp) predObj).getTime()))) {
           result = TruthValue.YES_NO_NULL;
         }
       }
@@ -722,7 +749,7 @@ public class RecordReaderBinaryImpl implements RecordReader {
    */
   static class SargCastException extends IllegalArgumentException {
 
-    SargCastException(String string) {
+    public SargCastException(String string) {
       super(string);
     }
   }
@@ -748,8 +775,7 @@ public class RecordReaderBinaryImpl implements RecordReader {
         } else if (obj instanceof Timestamp) {
           return DateWritable.timeToDate(((Timestamp) obj).getTime() / 1000L);
         }
-        // always string, but prevent the comparison
-        // to numbers (are they days/seconds/milliseconds?)
+        // always string, but prevent the comparison to numbers (are they days/seconds/milliseconds?)
         break;
       case DECIMAL:
         if (obj instanceof Boolean) {
@@ -832,8 +858,8 @@ public class RecordReaderBinaryImpl implements RecordReader {
   }
 
   public static class SargApplier {
-    public static final boolean[] READ_ALL_RGS = null;
-    public static final boolean[] READ_NO_RGS = new boolean[0];
+    public final static boolean[] READ_ALL_RGS = null;
+    public final static boolean[] READ_NO_RGS = new boolean[0];
 
     private final OrcFile.WriterVersion writerVersion;
     private final SearchArgument sarg;
@@ -920,8 +946,8 @@ public class RecordReaderBinaryImpl implements RecordReader {
               try {
                 leafValues[pred] = evaluatePredicateProto(stats,
                     predicate, bfk, encodings.get(columnIx), bf,
-                    writerVersion, evolution.getFileSchema()
-                    .findSubtype(columnIx).getCategory(),
+                    writerVersion, evolution.getFileSchema().
+                    findSubtype(columnIx).getCategory(),
                     useUTCTimestamp);
               } catch (Exception e) {
                 exceptionCount[pred] += 1;
@@ -930,8 +956,7 @@ public class RecordReaderBinaryImpl implements RecordReader {
                       + predicate);
                 } else {
                   if (LOG.isWarnEnabled()) {
-                    final String reason = e.getClass().getSimpleName() +
-                        " when evaluating predicate." +
+                    final String reason = e.getClass().getSimpleName() + " when evaluating predicate." +
                         " Skipping ORC PPD." +
                         " Stats: " + stats +
                         " Predicate: " + predicate;
@@ -1014,6 +1039,39 @@ public class RecordReaderBinaryImpl implements RecordReader {
     streams.clear();
   }
 
+  /**
+   * Read the current stripe into memory.
+   *
+   * @throws IOException
+   */
+  protected void readStripe() throws IOException {
+    StripeInformation stripe = beginReadStripe();
+    includedRowGroups = pickRowGroups();
+
+    // move forward to the first unskipped row
+    if (includedRowGroups != null) {
+      while (rowInStripe < rowCountInStripe &&
+          !includedRowGroups[(int) (rowInStripe / rowIndexStride)]) {
+        rowInStripe = Math.min(rowCountInStripe, rowInStripe + rowIndexStride);
+      }
+    }
+
+    // if we haven't skipped the whole stripe, read the data
+    if (rowInStripe < rowCountInStripe) {
+      // if we aren't projecting columns or filtering rows, just read it all
+      if (isFullRead() && includedRowGroups == null) {
+        readAllDataStreams(stripe);
+      } else {
+        readPartialDataStreams(stripe);
+      }
+      reader.startStripe(streams, stripeFooter);
+      // if we skipped the first row group, move the pointers forward
+      if (rowInStripe != 0) {
+        seekToRowEntry(reader, (int) (rowInStripe / rowIndexStride));
+      }
+    }
+  }
+
   private boolean isFullRead() {
     for (boolean isColumnPresent : fileIncluded){
       if (!isColumnPresent){
@@ -1023,35 +1081,7 @@ public class RecordReaderBinaryImpl implements RecordReader {
     return true;
   }
 
-  /**
-   * Read the current stripe into memory.
-   *
-   * @throws IOException
-   */
-  private void readStripe() throws IOException {
-    StripeInformation stripe = beginReadStripe();
-    includedRowGroups = pickRowGroups();
-
-    // move forward to the first unskipped row
-    if (includedRowGroups != null) {
-      while (rowInStripe < rowCountInStripe &&
-              !includedRowGroups[(int) (rowInStripe / rowIndexStride)]) {
-        rowInStripe = Math.min(rowCountInStripe, rowInStripe + rowIndexStride);
-      }
-    }
-
-    // if we haven't skipped the whole stripe, read the data
-    if (rowInStripe < rowCountInStripe) {
-      readPartialDataStreams(stripe);
-      reader.startStripe(streams, stripeFooter);
-      // if we skipped the first row group, move the pointers forward
-      if (rowInStripe != 0) {
-        seekToRowEntry(reader, (int) (rowInStripe / rowIndexStride));
-      }
-    }
-  }
-
-  private StripeInformation beginReadStripe() throws IOException {
+  protected StripeInformation beginReadStripe() throws IOException {
     StripeInformation stripe = stripes.get(currentStripe);
     stripeFooter = readStripeFooter(stripe);
     clearStreams();
@@ -1094,8 +1124,8 @@ public class RecordReaderBinaryImpl implements RecordReader {
    * @param compressionSize   the compression block size
    * @return the list of disk ranges that will be loaded
    */
-  static DiskRangeList planReadPartialDataStreams(
-      List<OrcProto.Stream> streamList,
+  static DiskRangeList planReadPartialDataStreams
+  (List<OrcProto.Stream> streamList,
       OrcProto.RowIndex[] indexes,
       boolean[] includedColumns,
       boolean[] includedRowGroups,
@@ -1106,7 +1136,7 @@ public class RecordReaderBinaryImpl implements RecordReader {
       boolean doMergeBuffers) {
     long offset = 0;
     // figure out which columns have a present stream
-    boolean[] hasNull = RecordReaderBinaryUtils.findPresentStreamsByColumn(streamList, types);
+    boolean[] hasNull = RecordReaderUtils.findPresentStreamsByColumn(streamList, types);
     CreateHelper list = new CreateHelper();
     for (OrcProto.Stream stream : streamList) {
       long length = stream.getLength();
@@ -1118,10 +1148,10 @@ public class RecordReaderBinaryImpl implements RecordReader {
           (column < includedColumns.length && includedColumns[column])) {
         // if we aren't filtering or it is a dictionary, load it.
         if (includedRowGroups == null
-            || RecordReaderBinaryUtils.isDictionary(streamKind, encodings.get(column))) {
-          RecordReaderBinaryUtils.addEntireStreamToRanges(offset, length, list, doMergeBuffers);
+            || RecordReaderUtils.isDictionary(streamKind, encodings.get(column))) {
+          RecordReaderUtils.addEntireStreamToRanges(offset, length, list, doMergeBuffers);
         } else {
-          RecordReaderBinaryUtils.addRgFilteredStreamToRanges(stream, includedRowGroups,
+          RecordReaderUtils.addRgFilteredStreamToRanges(stream, includedRowGroups,
               isCompressed, indexes[column], encodings.get(column), types.get(column),
               compressionSize, hasNull[column], offset, length, list, doMergeBuffers);
         }
@@ -1147,7 +1177,7 @@ public class RecordReaderBinaryImpl implements RecordReader {
         streamOffset += streamDesc.getLength();
         continue;
       }
-      List<DiskRange> buffers = RecordReaderBinaryUtils.getStreamBuffers(
+      List<DiskRange> buffers = RecordReaderUtils.getStreamBuffers(
           ranges, streamOffset, streamDesc.getLength());
       StreamName name = new StreamName(column, streamDesc.getKind());
       streams.put(name, InStream.create(name.toString(), buffers,
@@ -1156,83 +1186,21 @@ public class RecordReaderBinaryImpl implements RecordReader {
     }
   }
 
-  public class ColumnDiskRange {
-    private long offset;
-    private long length;
-
-    ColumnDiskRange(long offset, long length) {
-      this.offset = offset;
-      this.length = length;
-    }
-
-    public boolean equals(Object other) {
-      if (this == other) {
-        return true;
-      }
-      if (other instanceof ColumnDiskRange) {
-        ColumnDiskRange otherColumnDiskRange = (ColumnDiskRange)other;
-        return otherColumnDiskRange.offset == this.offset &&
-            otherColumnDiskRange.length == this.length;
-      }
-      return false;
-    }
-  }
-
-  /**
-   * Plan the ranges of the file that we need to read, given the list of
-   * columns in one stripe.
-   *
-   * @param streamList        the list of streams available
-   * @param includedColumns   which columns are needed
-   * @return the list of disk ranges that will be loaded
-   */
-  private DiskRangeList planReadColumnData(
-          List<OrcProto.Stream> streamList,
-          boolean[] includedColumns) {
-    long offset = 0;
-    Map<Integer, ColumnDiskRange> columnDiskRangeMap = new HashMap<Integer, ColumnDiskRange>();
-    ColumnDiskRangeList.CreateColumnRangeHelper list =
-        new ColumnDiskRangeList.CreateColumnRangeHelper();
-    for (OrcProto.Stream stream : streamList) {
-      long length = stream.getLength();
-      int column = stream.getColumn();
-      OrcProto.Stream.Kind streamKind = stream.getKind();
-      // since stream kind is optional, first check if it exists
-      if (stream.hasKind() &&
-              (StreamName.getArea(streamKind) == StreamName.Area.DATA) &&
-              (column < includedColumns.length && includedColumns[column])) {
-
-        if (columnDiskRangeMap.containsKey(column)) {
-          columnDiskRangeMap.get(column).length += length;
-        } else {
-          columnDiskRangeMap.put(column, new ColumnDiskRange(offset, length));
-        }
-      }
-      offset += length;
-    }
-    for (int columnId=1; columnId<includedColumns.length; ++columnId) {
-      if (includedColumns[columnId]) {
-        list.add(columnId, currentStripe, columnDiskRangeMap.get(columnId).offset,
-                columnDiskRangeMap.get(columnId).offset + columnDiskRangeMap.get(columnId).length);
-      }
-    }
-    return list.extract();
-  }
-
-
   private void readPartialDataStreams(StripeInformation stripe) throws IOException {
     List<OrcProto.Stream> streamList = stripeFooter.getStreamsList();
-    DiskRangeList toRead = planReadColumnData(streamList, fileIncluded);
+    DiskRangeList toRead = planReadPartialDataStreams(streamList,
+        indexes, fileIncluded, includedRowGroups, dataReader.getCompressionCodec() != null,
+        stripeFooter.getColumnsList(), types, bufferSize, true);
     if (LOG.isDebugEnabled()) {
-      LOG.debug("chunks = " + RecordReaderBinaryUtils.stringifyDiskRanges(toRead));
+      LOG.debug("chunks = " + RecordReaderUtils.stringifyDiskRanges(toRead));
     }
-    bufferChunks = ((RecordReaderBinaryUtils.DefaultDataReader)dataReader)
-        .readFileColumnData(toRead, stripe.getOffset(), false);
+    bufferChunks = dataReader.readFileData(toRead, stripe.getOffset(), false);
     if (LOG.isDebugEnabled()) {
-      LOG.debug("merge = " + RecordReaderBinaryUtils.stringifyDiskRanges(bufferChunks));
+      LOG.debug("merge = " + RecordReaderUtils.stringifyDiskRanges(bufferChunks));
     }
+
     createStreams(streamList, bufferChunks, fileIncluded,
-            dataReader.getCompressionCodec(), bufferSize, streams);
+        dataReader.getCompressionCodec(), bufferSize, streams);
   }
 
   /**
@@ -1257,7 +1225,7 @@ public class RecordReaderBinaryImpl implements RecordReader {
    * @throws IOException
    */
   private boolean advanceToNextRow(
-          TreeReaderFactory.TreeReader reader, long nextRow, boolean canAdvanceStripe)
+      TreeReaderFactory.TreeReader reader, long nextRow, boolean canAdvanceStripe)
       throws IOException {
     long nextRowInStripe = nextRow - rowBaseInStripe;
     // check for row skipping
@@ -1415,7 +1383,7 @@ public class RecordReaderBinaryImpl implements RecordReader {
         bloomFilterKind, bloomFilterIndex);
   }
 
-  private void seekToRowEntry(TreeReaderFactory.TreeReader reader, int rowEntry)
+  protected void seekToRowEntry(TreeReaderFactory.TreeReader reader, int rowEntry)
       throws IOException {
     PositionProvider[] index = new PositionProvider[indexes.length];
     for (int i = 0; i < indexes.length; ++i) {
@@ -1457,7 +1425,7 @@ public class RecordReaderBinaryImpl implements RecordReader {
   }
 
   public static int[] mapTranslatedSargColumns(
-          List<OrcProto.Type> types, List<PredicateLeaf> sargLeaves) {
+      List<OrcProto.Type> types, List<PredicateLeaf> sargLeaves) {
     int[] result = new int[sargLeaves.size()];
     OrcProto.Type lastRoot = null; // Root will be the same for everyone as of now.
     String lastRootStr = null;
@@ -1487,5 +1455,9 @@ public class RecordReaderBinaryImpl implements RecordReader {
 
   public CompressionCodec getCompressionCodec() {
     return dataReader.getCompressionCodec();
+  }
+
+  public int getMaxDiskRangeChunkLimit() {
+    return maxDiskRangeChunkLimit;
   }
 }
