@@ -18,7 +18,7 @@ public class RecordReaderBinaryCacheImpl extends RecordReaderImpl {
 //    if (zeroCopy == null) {
 //      zeroCopy = OrcConf.USE_ZEROCOPY.getBoolean(fileReader.conf);
 //    }
-//    this.dataReader = RecordReaderBinaryUtils.createDefaultDataReader(
+//    this.dataReader = RecordReaderBinaryCacheUtils.createDefaultDataReader(
 //            DataReaderProperties.builder()
 //                    .withBufferSize(bufferSize)
 //                    .withCompression(fileReader.compressionKind)
@@ -52,12 +52,12 @@ public class RecordReaderBinaryCacheImpl extends RecordReaderImpl {
     List<OrcProto.Stream> streamList = stripeFooter.getStreamsList();
     DiskRangeList toRead = planReadColumnData(streamList, fileIncluded);
     if (LOG.isDebugEnabled()) {
-      LOG.debug("chunks = " + RecordReaderBinaryUtils.stringifyDiskRanges(toRead));
+      LOG.debug("chunks = " + RecordReaderBinaryCacheUtils.stringifyDiskRanges(toRead));
     }
-    bufferChunks = ((RecordReaderBinaryUtils.DefaultDataReader)dataReader)
+    bufferChunks = ((RecordReaderBinaryCacheUtils.DefaultDataReader)dataReader)
             .readFileColumnData(toRead, stripe.getOffset(), false);
     if (LOG.isDebugEnabled()) {
-      LOG.debug("merge = " + RecordReaderBinaryUtils.stringifyDiskRanges(bufferChunks));
+      LOG.debug("merge = " + RecordReaderBinaryCacheUtils.stringifyDiskRanges(bufferChunks));
     }
     createStreams(streamList, bufferChunks, fileIncluded,
             dataReader.getCompressionCodec(), bufferSize, streams);

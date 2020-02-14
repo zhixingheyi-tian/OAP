@@ -46,9 +46,9 @@ import java.util.TreeMap;
 /**
  * Stateless methods shared between RecordReaderBinaryCacheImpl and EncodedReaderImpl.
  */
-public class RecordReaderBinaryUtils {
+public class RecordReaderBinaryCacheUtils {
   private static final HadoopShims SHIMS = HadoopShimsFactory.get();
-  private static final Logger LOG = LoggerFactory.getLogger(RecordReaderBinaryUtils.class);
+  private static final Logger LOG = LoggerFactory.getLogger(RecordReaderBinaryCacheUtils.class);
 
   static boolean hadBadBloomFilters(TypeDescription.Category category,
                                     OrcFile.WriterVersion version) {
@@ -174,7 +174,7 @@ public class RecordReaderBinaryUtils {
       if (useZeroCopy) {
         // ZCR only uses codec for boolean checks.
         pool = new ByteBufferAllocatorPool();
-        zcr = RecordReaderBinaryUtils.createZeroCopyShim(file, codec, pool);
+        zcr = RecordReaderBinaryCacheUtils.createZeroCopyShim(file, codec, pool);
       } else {
         zcr = null;
       }
@@ -276,12 +276,12 @@ public class RecordReaderBinaryUtils {
     @Override
     public DiskRangeList readFileData(
             DiskRangeList range, long baseOffset, boolean doForceDirect) throws IOException {
-      return RecordReaderBinaryUtils.readDiskRanges(file, zcr, baseOffset, range, doForceDirect);
+      return RecordReaderBinaryCacheUtils.readDiskRanges(file, zcr, baseOffset, range, doForceDirect);
     }
 
     public DiskRangeList readFileColumnData(
             DiskRangeList range, long baseOffset, boolean doForceDirect) throws IOException {
-      return RecordReaderBinaryUtils.readColumnRanges(file, path, baseOffset, range, doForceDirect);
+      return RecordReaderBinaryCacheUtils.readColumnRanges(file, path, baseOffset, range, doForceDirect);
     }
 
     @Override

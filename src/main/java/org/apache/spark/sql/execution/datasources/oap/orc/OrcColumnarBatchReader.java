@@ -137,7 +137,7 @@ public class OrcColumnarBatchReader implements RecordReader<ColumnarBatch> {
     if (zeroCopy == null) {
       zeroCopy = OrcConf.USE_ZEROCOPY.getBoolean(conf);
     }
-    DataReader dataReader = RecordReaderBinaryUtils.createDefaultDataReader(
+    DataReader dataReader = RecordReaderBinaryCacheUtils.createDefaultDataReader(
             DataReaderProperties.builder()
                     .withBufferSize(fileReader.getCompressionSize())
                     .withCompression(fileReader.getCompressionKind())

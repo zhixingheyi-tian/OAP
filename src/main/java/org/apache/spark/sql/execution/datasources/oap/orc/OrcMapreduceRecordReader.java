@@ -28,7 +28,7 @@ import org.apache.orc.*;
 import org.apache.orc.impl.DataReaderProperties;
 import org.apache.orc.impl.ReaderImpl;
 import org.apache.orc.impl.RecordReaderBinaryCacheImpl;
-import org.apache.orc.impl.RecordReaderBinaryUtils;
+import org.apache.orc.impl.RecordReaderBinaryCacheUtils;
 import org.apache.orc.mapred.OrcMapredRecordReader;
 import org.apache.orc.mapred.OrcStruct;
 import org.apache.orc.storage.ql.exec.vector.VectorizedRowBatch;
@@ -65,7 +65,7 @@ public class OrcMapreduceRecordReader<V extends WritableComparable>
     if (zeroCopy == null) {
       zeroCopy = OrcConf.USE_ZEROCOPY.getBoolean(conf);
     }
-    DataReader dataReader = RecordReaderBinaryUtils.createDefaultDataReader(
+    DataReader dataReader = RecordReaderBinaryCacheUtils.createDefaultDataReader(
             DataReaderProperties.builder()
                     .withBufferSize(fileReader.getCompressionSize())
                     .withCompression(fileReader.getCompressionKind())
