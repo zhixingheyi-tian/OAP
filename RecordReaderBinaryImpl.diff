@@ -1,0 +1,318 @@
+20,21d19
+< import org.apache.orc.CompressionKind;
+< 
+26,31c24
+< import java.util.ArrayList;
+< import java.util.Arrays;
+< import java.util.HashMap;
+< import java.util.List;
+< import java.util.Map;
+< import java.util.TimeZone;
+---
+> import java.util.*;
+33c26,39
+< import org.apache.orc.OrcFile;
+---
+> import org.apache.hadoop.fs.Path;
+> import org.apache.hadoop.io.Text;
+> import org.apache.orc.*;
+> import org.apache.orc.storage.common.io.DiskRange;
+> import org.apache.orc.storage.common.io.DiskRangeList;
+> import org.apache.orc.storage.common.io.DiskRangeList.CreateHelper;
+> import org.apache.orc.storage.common.type.HiveDecimal;
+> import org.apache.orc.storage.ql.exec.vector.VectorizedRowBatch;
+> import org.apache.orc.storage.ql.io.sarg.PredicateLeaf;
+> import org.apache.orc.storage.ql.io.sarg.SearchArgument;
+> import org.apache.orc.storage.ql.io.sarg.SearchArgument.TruthValue;
+> import org.apache.orc.storage.ql.util.TimestampUtils;
+> import org.apache.orc.storage.serde2.io.DateWritable;
+> import org.apache.orc.storage.serde2.io.HiveDecimalWritable;
+36,51d41
+< import org.apache.orc.BooleanColumnStatistics;
+< import org.apache.orc.ColumnStatistics;
+< import org.apache.orc.CompressionCodec;
+< import org.apache.orc.DataReader;
+< import org.apache.orc.DateColumnStatistics;
+< import org.apache.orc.DecimalColumnStatistics;
+< import org.apache.orc.DoubleColumnStatistics;
+< import org.apache.orc.IntegerColumnStatistics;
+< import org.apache.orc.OrcConf;
+< import org.apache.orc.OrcProto;
+< import org.apache.orc.Reader;
+< import org.apache.orc.RecordReader;
+< import org.apache.orc.StringColumnStatistics;
+< import org.apache.orc.StripeInformation;
+< import org.apache.orc.TimestampColumnStatistics;
+< import org.apache.orc.TypeDescription;
+54,66d43
+< import org.apache.hadoop.fs.Path;
+< import org.apache.hadoop.hive.common.io.DiskRange;
+< import org.apache.hadoop.hive.common.io.DiskRangeList;
+< import org.apache.hadoop.hive.common.io.DiskRangeList.CreateHelper;
+< import org.apache.hadoop.hive.common.type.HiveDecimal;
+< import org.apache.hadoop.hive.ql.exec.vector.VectorizedRowBatch;
+< import org.apache.hadoop.hive.ql.io.sarg.PredicateLeaf;
+< import org.apache.hadoop.hive.ql.io.sarg.SearchArgument;
+< import org.apache.hadoop.hive.ql.io.sarg.SearchArgument.TruthValue;
+< import org.apache.hadoop.hive.serde2.io.DateWritable;
+< import org.apache.hadoop.hive.serde2.io.HiveDecimalWritable;
+< import org.apache.hadoop.hive.ql.util.TimestampUtils;
+< import org.apache.hadoop.io.Text;
+68,69c45,46
+< public class RecordReaderImpl implements RecordReader {
+<   static final Logger LOG = LoggerFactory.getLogger(RecordReaderImpl.class);
+---
+> public class RecordReaderBinaryImpl implements RecordReader {
+>   static final Logger LOG = LoggerFactory.getLogger(RecordReaderBinaryImpl.class);
+102a80,81
+> 
+> 
+179,180c158,159
+<   protected RecordReaderImpl(ReaderImpl fileReader,
+<                              Reader.Options options) throws IOException {
+---
+>   public RecordReaderBinaryImpl(ReaderImpl fileReader,
+>                                 Reader.Options options) throws IOException {
+239,251c218,227
+<     if (options.getDataReader() != null) {
+<       this.dataReader = options.getDataReader().clone();
+<     } else {
+<       this.dataReader = RecordReaderUtils.createDefaultDataReader(
+<           DataReaderProperties.builder()
+<               .withBufferSize(bufferSize)
+<               .withCompression(fileReader.compressionKind)
+<               .withFileSystem(fileReader.fileSystem)
+<               .withPath(fileReader.path)
+<               .withTypeCount(types.size())
+<               .withZeroCopy(zeroCopy)
+<               .build());
+<     }
+---
+> 
+>     this.dataReader = RecordReaderBinaryUtils.createDefaultDataReader(
+>         DataReaderProperties.builder()
+>             .withBufferSize(bufferSize)
+>             .withCompression(fileReader.compressionKind)
+>             .withFileSystem(fileReader.fileSystem)
+>             .withPath(fileReader.path)
+>             .withTypeCount(types.size())
+>             .withZeroCopy(zeroCopy)
+>             .build());
+522c498,499
+<     return evaluatePredicateRange(predicate, minValue, maxValue, stats.hasNull(), bloomFilter, useUTCTimestamp);
+---
+>     return evaluatePredicateRange(predicate, minValue, maxValue, stats.hasNull(),
+>             bloomFilter, useUTCTimestamp);
+547c524,525
+<       return evaluatePredicateBloomFilter(predicate, predObj, bloomFilter, hasNull, useUTCTimestamp);
+---
+>       return evaluatePredicateBloomFilter(predicate, predObj, bloomFilter,
+>               hasNull, useUTCTimestamp);
+554c532
+<       TruthValue result, BloomFilter bloomFilter) {
+---
+>                                                    TruthValue result, BloomFilter bloomFilter) {
+570,572c548,550
+<       Object minValue,
+<       Object maxValue,
+<       boolean hasNull) {
+---
+>                                                     Object minValue,
+>                                                     Object maxValue,
+>                                                     boolean hasNull) {
+677c655,656
+<           TruthValue result = checkInBloomFilter(bloomFilter, predObjItem, hasNull, useUTCTimestamp);
+---
+>           TruthValue result = checkInBloomFilter(bloomFilter, predObjItem,
+>                   hasNull, useUTCTimestamp);
+688c667,668
+<   private static TruthValue checkInBloomFilter(BloomFilter bf, Object predObj, boolean hasNull, boolean useUTCTimestamp) {
+---
+>   private static TruthValue checkInBloomFilter(BloomFilter bf, Object predObj,
+>                                                boolean hasNull, boolean useUTCTimestamp) {
+711c691,692
+<         if (bf.testLong(SerializationUtils.convertToUtc(TimeZone.getDefault(), ((Timestamp) predObj).getTime()))) {
+---
+>         if (bf.testLong(SerializationUtils.convertToUtc(TimeZone.getDefault(),
+>                 ((Timestamp) predObj).getTime()))) {
+744c725
+<     public SargCastException(String string) {
+---
+>     SargCastException(String string) {
+770c751,752
+<         // always string, but prevent the comparison to numbers (are they days/seconds/milliseconds?)
+---
+>         // always string, but prevent the comparison
+>         // to numbers (are they days/seconds/milliseconds?)
+853,854c835,836
+<     public final static boolean[] READ_ALL_RGS = null;
+<     public final static boolean[] READ_NO_RGS = new boolean[0];
+---
+>     public static final boolean[] READ_ALL_RGS = null;
+>     public static final boolean[] READ_NO_RGS = new boolean[0];
+941,942c923,924
+<                     writerVersion, evolution.getFileSchema().
+<                     findSubtype(columnIx).getCategory(),
+---
+>                     writerVersion, evolution.getFileSchema()
+>                     .findSubtype(columnIx).getCategory(),
+951c933,934
+<                     final String reason = e.getClass().getSimpleName() + " when evaluating predicate." +
+---
+>                     final String reason = e.getClass().getSimpleName() +
+>                         " when evaluating predicate." +
+1033a1017,1025
+>   private boolean isFullRead() {
+>     for (boolean isColumnPresent : fileIncluded){
+>       if (!isColumnPresent){
+>         return false;
+>       }
+>     }
+>     return true;
+>   }
+> 
+1046c1038
+<           !includedRowGroups[(int) (rowInStripe / rowIndexStride)]) {
+---
+>               !includedRowGroups[(int) (rowInStripe / rowIndexStride)]) {
+1053,1058c1045
+<       // if we aren't projecting columns or filtering rows, just read it all
+<       if (isFullRead() && includedRowGroups == null) {
+<         readAllDataStreams(stripe);
+<       } else {
+<         readPartialDataStreams(stripe);
+<       }
+---
+>       readPartialDataStreams(stripe);
+1067,1075d1053
+<   private boolean isFullRead() {
+<     for (boolean isColumnPresent : fileIncluded){
+<       if (!isColumnPresent){
+<         return false;
+<       }
+<     }
+<     return true;
+<   }
+< 
+1119,1120c1097,1098
+<   static DiskRangeList planReadPartialDataStreams
+<   (List<OrcProto.Stream> streamList,
+---
+>   static DiskRangeList planReadPartialDataStreams(
+>       List<OrcProto.Stream> streamList,
+1131c1109
+<     boolean[] hasNull = RecordReaderUtils.findPresentStreamsByColumn(streamList, types);
+---
+>     boolean[] hasNull = RecordReaderBinaryUtils.findPresentStreamsByColumn(streamList, types);
+1143,1144c1121,1122
+<             || RecordReaderUtils.isDictionary(streamKind, encodings.get(column))) {
+<           RecordReaderUtils.addEntireStreamToRanges(offset, length, list, doMergeBuffers);
+---
+>             || RecordReaderBinaryUtils.isDictionary(streamKind, encodings.get(column))) {
+>           RecordReaderBinaryUtils.addEntireStreamToRanges(offset, length, list, doMergeBuffers);
+1146c1124
+<           RecordReaderUtils.addRgFilteredStreamToRanges(stream, includedRowGroups,
+---
+>           RecordReaderBinaryUtils.addRgFilteredStreamToRanges(stream, includedRowGroups,
+1172c1150
+<       List<DiskRange> buffers = RecordReaderUtils.getStreamBuffers(
+---
+>       List<DiskRange> buffers = RecordReaderBinaryUtils.getStreamBuffers(
+1180a1159,1222
+>   public class ColumnDiskRange {
+>     private long offset;
+>     private long length;
+> 
+>     ColumnDiskRange(long offset, long length) {
+>       this.offset = offset;
+>       this.length = length;
+>     }
+> 
+>     public boolean equals(Object other) {
+>       if (this == other) {
+>         return true;
+>       }
+>       if (other instanceof ColumnDiskRange) {
+>         ColumnDiskRange otherColumnDiskRange = (ColumnDiskRange)other;
+>         return otherColumnDiskRange.offset == this.offset &&
+>             otherColumnDiskRange.length == this.length;
+>       }
+>       return false;
+>     }
+>   }
+> 
+>   /**
+>    * Plan the ranges of the file that we need to read, given the list of
+>    * columns in one stripe.
+>    *
+>    * @param streamList        the list of streams available
+>    * @param includedColumns   which columns are needed
+>    * @return the list of disk ranges that will be loaded
+>    */
+>   private DiskRangeList planReadColumnData(
+>           List<OrcProto.Stream> streamList,
+>           boolean[] includedColumns) {
+>     long offset = 0;
+>     Map<Integer, ColumnDiskRange> columnDiskRangeMap = new HashMap<Integer, ColumnDiskRange>();
+>     ColumnDiskRangeList.CreateColumnRangeHelper list =
+>         new ColumnDiskRangeList.CreateColumnRangeHelper();
+>     for (OrcProto.Stream stream : streamList) {
+>       long length = stream.getLength();
+>       int column = stream.getColumn();
+>       OrcProto.Stream.Kind streamKind = stream.getKind();
+>       // since stream kind is optional, first check if it exists
+>       if (stream.hasKind() &&
+>               (StreamName.getArea(streamKind) == StreamName.Area.DATA) &&
+>               (column < includedColumns.length && includedColumns[column])) {
+> 
+>         if (columnDiskRangeMap.containsKey(column)) {
+>           columnDiskRangeMap.get(column).length += length;
+>         } else {
+>           columnDiskRangeMap.put(column, new ColumnDiskRange(offset, length));
+>         }
+>       }
+>       offset += length;
+>     }
+>     for (int columnId=1; columnId<includedColumns.length; ++columnId) {
+>       if (includedColumns[columnId]) {
+>         list.add(columnId, currentStripe, columnDiskRangeMap.get(columnId).offset,
+>                 columnDiskRangeMap.get(columnId).offset + columnDiskRangeMap.get(columnId).length);
+>       }
+>     }
+>     return list.extract();
+>   }
+> 
+> 
+1183,1185c1225
+<     DiskRangeList toRead = planReadPartialDataStreams(streamList,
+<         indexes, fileIncluded, includedRowGroups, dataReader.getCompressionCodec() != null,
+<         stripeFooter.getColumnsList(), types, bufferSize, true);
+---
+>     DiskRangeList toRead = planReadColumnData(streamList, fileIncluded);
+1187c1227
+<       LOG.debug("chunks = " + RecordReaderUtils.stringifyDiskRanges(toRead));
+---
+>       LOG.debug("chunks = " + RecordReaderBinaryUtils.stringifyDiskRanges(toRead));
+1189c1229,1230
+<     bufferChunks = dataReader.readFileData(toRead, stripe.getOffset(), false);
+---
+>     bufferChunks = ((RecordReaderBinaryUtils.DefaultDataReader)dataReader)
+>         .readFileColumnData(toRead, stripe.getOffset(), false);
+1191c1232
+<       LOG.debug("merge = " + RecordReaderUtils.stringifyDiskRanges(bufferChunks));
+---
+>       LOG.debug("merge = " + RecordReaderBinaryUtils.stringifyDiskRanges(bufferChunks));
+1193d1233
+< 
+1195c1235
+<         dataReader.getCompressionCodec(), bufferSize, streams);
+---
+>             dataReader.getCompressionCodec(), bufferSize, streams);
+1220c1260
+<       TreeReaderFactory.TreeReader reader, long nextRow, boolean canAdvanceStripe)
+---
+>           TreeReaderFactory.TreeReader reader, long nextRow, boolean canAdvanceStripe)
+1420c1460
+<       List<OrcProto.Type> types, List<PredicateLeaf> sargLeaves) {
+---
+>           List<OrcProto.Type> types, List<PredicateLeaf> sargLeaves) {

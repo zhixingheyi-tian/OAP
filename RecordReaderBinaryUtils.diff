@@ -1,0 +1,185 @@
+20,22d19
+< import org.slf4j.Logger;
+< import org.slf4j.LoggerFactory;
+< 
+28a26
+> 
+29a28
+> import org.apache.hadoop.conf.Configuration;
+33,41c32,45
+< import org.apache.hadoop.hive.common.io.DiskRange;
+< import org.apache.hadoop.hive.common.io.DiskRangeList;
+< import org.apache.orc.CompressionCodec;
+< import org.apache.orc.CompressionKind;
+< import org.apache.orc.DataReader;
+< import org.apache.orc.OrcFile;
+< import org.apache.orc.OrcProto;
+< import org.apache.orc.StripeInformation;
+< import org.apache.orc.TypeDescription;
+---
+> import org.apache.orc.*;
+> import org.apache.orc.storage.common.io.DiskRange;
+> import org.apache.orc.storage.common.io.DiskRangeList;
+> import org.slf4j.Logger;
+> import org.slf4j.LoggerFactory;
+> 
+> import org.apache.spark.sql.execution.datasources.oap.filecache.FiberCache;
+> import org.apache.spark.sql.execution.datasources.oap.filecache.FiberCacheManager;
+> import org.apache.spark.sql.execution.datasources.oap.filecache.OrcBinaryFiberId;
+> import org.apache.spark.sql.execution.datasources.oap.io.DataFile;
+> import org.apache.spark.sql.execution.datasources.oap.io.OrcDataFile;
+> import org.apache.spark.sql.oap.OapRuntime$;
+> import org.apache.spark.sql.types.StructType;
+> import org.apache.spark.unsafe.Platform;
+44c48
+<  * Stateless methods shared between RecordReaderImpl and EncodedReaderImpl.
+---
+>  * Stateless methods shared between RecordReaderBinaryImpl and EncodedReaderImpl.
+46c50
+< public class RecordReaderUtils {
+---
+> public class RecordReaderBinaryUtils {
+48c52
+<   private static final Logger LOG = LoggerFactory.getLogger(RecordReaderUtils.class);
+---
+>   private static final Logger LOG = LoggerFactory.getLogger(RecordReaderBinaryUtils.class);
+82,87c86,91
+<                                         OrcProto.StripeFooter footer,
+<                                         boolean ignoreNonUtf8BloomFilter,
+<                                         boolean[] fileIncluded,
+<                                         boolean[] sargColumns,
+<                                         OrcFile.WriterVersion version,
+<                                         OrcProto.Stream.Kind[] bloomFilterKinds) {
+---
+>                                                OrcProto.StripeFooter footer,
+>                                                boolean ignoreNonUtf8BloomFilter,
+>                                                boolean[] fileIncluded,
+>                                                boolean[] sargColumns,
+>                                                OrcFile.WriterVersion version,
+>                                                OrcProto.Stream.Kind[] bloomFilterKinds) {
+146c150
+<   private static class DefaultDataReader implements DataReader {
+---
+>   public static class DefaultDataReader implements DataReader {
+174c178
+<         zcr = RecordReaderUtils.createZeroCopyShim(file, codec, pool);
+---
+>         zcr = RecordReaderBinaryUtils.createZeroCopyShim(file, codec, pool);
+242,243c246,247
+<                 bloomFilterIndices[column] = OrcProto.BloomFilterIndex.parseFrom
+<                     (InStream.createCodedInputStream("bloom_filter",
+---
+>                 bloomFilterIndices[column] = OrcProto.BloomFilterIndex.parseFrom(
+>                     InStream.createCodedInputStream("bloom_filter",
+275,276c279,285
+<         DiskRangeList range, long baseOffset, boolean doForceDirect) throws IOException {
+<       return RecordReaderUtils.readDiskRanges(file, zcr, baseOffset, range, doForceDirect);
+---
+>             DiskRangeList range, long baseOffset, boolean doForceDirect) throws IOException {
+>       return RecordReaderBinaryUtils.readDiskRanges(file, zcr, baseOffset, range, doForceDirect);
+>     }
+> 
+>     public DiskRangeList readFileColumnData(
+>             DiskRangeList range, long baseOffset, boolean doForceDirect) throws IOException {
+>       return RecordReaderBinaryUtils.readColumnRanges(file, path, baseOffset, range, doForceDirect);
+337c346
+<       List<OrcProto.Stream> streamList, List<OrcProto.Type> types) {
+---
+>           List<OrcProto.Stream> streamList, List<OrcProto.Type> types) {
+363c372
+<       long offset, long length, DiskRangeList.CreateHelper list, boolean doMergeBuffers) {
+---
+>           long offset, long length, DiskRangeList.CreateHelper list, boolean doMergeBuffers) {
+413,416c422,425
+<                               OrcProto.Type.Kind columnType,
+<                               OrcProto.Stream.Kind streamType,
+<                               boolean isCompressed,
+<                               boolean hasNulls) {
+---
+>                                      OrcProto.Type.Kind columnType,
+>                                      OrcProto.Stream.Kind streamType,
+>                                      boolean isCompressed,
+>                                      boolean hasNulls) {
+478c487
+<                               OrcProto.ColumnEncoding encoding) {
+---
+>                                      OrcProto.ColumnEncoding encoding) {
+522,524c531,533
+<                                  long base,
+<                                  DiskRangeList range,
+<                                  boolean doForceDirect) throws IOException {
+---
+>                                       long base,
+>                                       DiskRangeList range,
+>                                       boolean doForceDirect) throws IOException {
+573a583,638
+>   /**
+>    * Read the list of ranges from the file.
+>    * @param file the file to read
+>    * @param base the base of the stripe
+>    * @param range the disk ranges within the stripe to read
+>    * @return the bytes read for each disk range, which is the same length as
+>    *    ranges
+>    * @throws IOException
+>    */
+>   static DiskRangeList readColumnRanges(FSDataInputStream file,
+>                                         Path path,
+>                                         long base,
+>                                         DiskRangeList range,
+>                                         boolean doForceDirect) throws IOException {
+>     if (range == null) return null;
+>     DiskRangeList prev = range.prev;
+>     if (prev == null) {
+>       prev = new DiskRangeList.MutateHelper(range);
+>     }
+>     while (range != null) {
+>       if (range.hasData()) {
+>         range = range.next;
+>         continue;
+>       }
+>       int len = (int) (range.getEnd() - range.getOffset());
+>       long off = range.getOffset();
+>       // Don't use HDFS ByteBuffer API because it has no readFully, and is buggy and pointless.
+> 
+>       byte[] buffer = new byte[len];
+> 
+>       DataFile dataFile = new OrcDataFile(path.toUri().toString(),
+>           new StructType(), new Configuration());
+>       FiberCacheManager cacheManager = OapRuntime$.MODULE$.getOrCreate().fiberCacheManager();
+>       FiberCache fiberCache = null;
+>       OrcBinaryFiberId fiberId = null;
+>       ColumnDiskRangeList columnRange = (ColumnDiskRangeList)range;
+>       fiberId = new OrcBinaryFiberId(dataFile, columnRange.columnId, columnRange.currentStripe);
+>       fiberId.withLoadCacheParameters(file, base + off, len);
+>       fiberCache = cacheManager.get(fiberId);
+>       long fiberOffset = fiberCache.getBaseOffset();
+>       Platform.copyMemory(null, fiberOffset, buffer, Platform.BYTE_ARRAY_OFFSET, len);
+> 
+>       ByteBuffer bb = null;
+>       if (doForceDirect) {
+>         bb = ByteBuffer.allocateDirect(len);
+>         bb.put(buffer);
+>         bb.position(0);
+>         bb.limit(len);
+>       } else {
+>         bb = ByteBuffer.wrap(buffer);
+>       }
+>       range = range.replaceSelfWith(new BufferChunk(bb, range.getOffset()));
+>       range = range.next;
+>     }
+>     return prev.next;
+>   }
+591c656,657
+<           if (range.getEnd() >= streamEnd) break; // Partial first buffer is also partial last buffer.
+---
+>           // Partial first buffer is also partial last buffer.
+>           if (range.getEnd() >= streamEnd) break;
+625c691,692
+<   public final static class ByteBufferAllocatorPool implements HadoopShims.ByteBufferPoolShim {
+---
+>   public static final class ByteBufferAllocatorPool implements
+>     HadoopShims.ByteBufferPoolShim {
+670c737
+<     private final TreeMap<Key, ByteBuffer> getBufferTree(boolean direct) {
+---
+>     private TreeMap<Key, ByteBuffer> getBufferTree(boolean direct) {

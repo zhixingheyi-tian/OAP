@@ -17,13 +17,6 @@
  */
 package org.apache.orc.impl;
 
-import java.io.IOException;
-import java.nio.ByteBuffer;
-import java.util.ArrayList;
-import java.util.List;
-import java.util.Map;
-import java.util.TreeMap;
-
 import org.apache.commons.lang.builder.HashCodeBuilder;
 import org.apache.hadoop.conf.Configuration;
 import org.apache.hadoop.fs.FSDataInputStream;
@@ -32,9 +25,6 @@ import org.apache.hadoop.fs.Path;
 import org.apache.orc.*;
 import org.apache.orc.storage.common.io.DiskRange;
 import org.apache.orc.storage.common.io.DiskRangeList;
-import org.slf4j.Logger;
-import org.slf4j.LoggerFactory;
-
 import org.apache.spark.sql.execution.datasources.oap.filecache.FiberCache;
 import org.apache.spark.sql.execution.datasources.oap.filecache.FiberCacheManager;
 import org.apache.spark.sql.execution.datasources.oap.filecache.OrcBinaryFiberId;
@@ -43,9 +33,18 @@ import org.apache.spark.sql.execution.datasources.oap.io.OrcDataFile;
 import org.apache.spark.sql.oap.OapRuntime$;
 import org.apache.spark.sql.types.StructType;
 import org.apache.spark.unsafe.Platform;
+import org.slf4j.Logger;
+import org.slf4j.LoggerFactory;
+
+import java.io.IOException;
+import java.nio.ByteBuffer;
+import java.util.ArrayList;
+import java.util.List;
+import java.util.Map;
+import java.util.TreeMap;
 
 /**
- * Stateless methods shared between RecordReaderBinaryImpl and EncodedReaderImpl.
+ * Stateless methods shared between RecordReaderBinaryCacheImpl and EncodedReaderImpl.
  */
 public class RecordReaderBinaryUtils {
   private static final HadoopShims SHIMS = HadoopShimsFactory.get();

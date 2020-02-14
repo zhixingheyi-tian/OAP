@@ -22,12 +22,8 @@ import java.io.IOException;
 import org.apache.hadoop.conf.Configuration;
 import org.apache.hadoop.fs.FileSystem;
 import org.apache.hadoop.fs.Path;
-import org.apache.orc.OrcConf;
-import org.apache.orc.OrcFile;
-import org.apache.orc.Reader;
-import org.apache.orc.TypeDescription;
-import org.apache.orc.impl.ReaderImpl;
-import org.apache.orc.impl.RecordReaderBinaryImpl;
+import org.apache.orc.*;
+import org.apache.orc.impl.*;
 import org.apache.orc.mapred.OrcInputFormat;
 import org.apache.orc.storage.common.type.HiveDecimal;
 import org.apache.orc.storage.ql.exec.vector.*;
@@ -129,14 +125,31 @@ public class OrcColumnarBatchReader implements RecordReader<ColumnarBatch> {
       Path file, Configuration conf) throws IOException {
     FileSystem fileSystem = file.getFileSystem(conf);
     long length = fileSystem.getFileStatus(file).getLen();
-    Reader reader = OrcFile.createReader(
+    Reader fileReader = OrcFile.createReader(
       file,
       OrcFile.readerOptions(conf)
         .maxLength(OrcConf.MAX_FILE_LENGTH.getLong(conf))
         .filesystem(fileSystem));
     Reader.Options options =
-      OrcInputFormat.buildOptions(conf, reader, 0, length);
-    recordReader = new RecordReaderBinaryImpl((ReaderImpl)reader, options);
+      OrcInputFormat.buildOptions(conf, fileReader, 0, length);
+
+    Boolean zeroCopy = options.getUseZeroCopy();
+    if (zeroCopy == null) {
+      zeroCopy = OrcConf.USE_ZEROCOPY.getBoolean(conf);
+    }
+    DataReader dataReader = RecordReaderBinaryUtils.createDefaultDataReader(
+            DataReaderProperties.builder()
+                    .withBufferSize(fileReader.getCompressionSize())
+                    .withCompression(fileReader.getCompressionKind())
+                    .withFileSystem(fileSystem)
+                    .withPath(file)
+                    .withTypeCount(fileReader.getTypes().size())
+                    .withZeroCopy(zeroCopy)
+                    .withMaxDiskRangeChunkLimit(OrcConf.ORC_MAX_DISK_RANGE_CHUNK_LIMIT.getInt(conf))
+                    .build());
+    options.dataReader(dataReader);
+
+    recordReader = new RecordReaderBinaryCacheImpl((ReaderImpl)fileReader, options);
   }
 
   /**
