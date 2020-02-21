@@ -109,7 +109,6 @@ case class OrcBinaryFiberId(file: DataFile, columnIndex: Int, rowGroupId: Int) e
     assert(input != null && offset >= 0 && length > 0,
       "Illegal condition when load Parquet Chunk Fiber to cache.")
     val data = new Array[Byte](length)
-    input.seek(offset)
     input.readFully((offset), data, 0, data.length);
     val fiber = OapRuntime.getOrCreate.fiberCacheManager.getEmptyDataFiberCache(length)
     Platform.copyMemory(data,
