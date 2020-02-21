@@ -102,7 +102,7 @@ case class OrcBinaryFiberId(file: DataFile, columnIndex: Int, rowGroupId: Int) e
   }
 
   override def toString: String = {
-    s"type: ParquetChunkFiber rowGroup: $rowGroupId column: $columnIndex\n\tfile: ${file.path}"
+    s"type: ORCColumn rowGroup: $rowGroupId column: $columnIndex\n\tfile: ${file.path}"
   }
 
   def doCache(): FiberCache = {
@@ -110,12 +110,10 @@ case class OrcBinaryFiberId(file: DataFile, columnIndex: Int, rowGroupId: Int) e
       "Illegal condition when load Parquet Chunk Fiber to cache.")
     val data = new Array[Byte](length)
     input.seek(offset)
-    //    input.readFully(data)
     input.readFully((offset), data, 0, data.length);
     val fiber = OapRuntime.getOrCreate.fiberCacheManager.getEmptyDataFiberCache(length)
     Platform.copyMemory(data,
       Platform.BYTE_ARRAY_OFFSET, null, fiber.getBaseOffset, length)
-    //    BenchmarkCounter.incrementBytesRead(length)
     fiber
   }
 }
