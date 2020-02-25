@@ -17,6 +17,9 @@
  */
 package org.apache.spark.sql.execution.datasources.oap.orc;
 
+import java.io.IOException;
+import java.util.List;
+
 import org.apache.hadoop.conf.Configuration;
 import org.apache.hadoop.fs.FileSystem;
 import org.apache.hadoop.fs.Path;
@@ -29,10 +32,8 @@ import org.apache.orc.impl.RecordReaderBinaryCacheUtils;
 import org.apache.orc.mapred.OrcMapredRecordReader;
 import org.apache.orc.mapred.OrcStruct;
 import org.apache.orc.storage.ql.exec.vector.VectorizedRowBatch;
-import org.apache.spark.sql.internal.oap.OapConf$;
 
-import java.io.IOException;
-import java.util.List;
+import org.apache.spark.sql.internal.oap.OapConf$;
 
 /**
  * This record reader is a copy of OrcMapreduceRecordReader with minor changes

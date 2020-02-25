@@ -17,6 +17,8 @@
 
 package org.apache.spark.sql.execution.datasources.oap.orc;
 
+import java.io.IOException;
+
 import org.apache.hadoop.conf.Configuration;
 import org.apache.hadoop.fs.FileSystem;
 import org.apache.hadoop.fs.Path;
@@ -29,6 +31,7 @@ import org.apache.orc.mapred.OrcInputFormat;
 import org.apache.orc.storage.common.type.HiveDecimal;
 import org.apache.orc.storage.ql.exec.vector.*;
 import org.apache.orc.storage.serde2.io.HiveDecimalWritable;
+
 import org.apache.spark.memory.MemoryMode;
 import org.apache.spark.sql.catalyst.InternalRow;
 import org.apache.spark.sql.execution.datasources.RecordReader;
@@ -41,8 +44,6 @@ import org.apache.spark.sql.execution.vectorized.WritableColumnVector;
 import org.apache.spark.sql.internal.oap.OapConf$;
 import org.apache.spark.sql.types.*;
 import org.apache.spark.sql.vectorized.ColumnarBatch;
-
-import java.io.IOException;
 
 /**
  * This class is a copy of OrcColumnarBatchReader with minor changes to be able to
