@@ -301,12 +301,11 @@ class FilterSuite extends QueryTest with SharedOapContext with BeforeAndAfterEac
     withIndex(TestIndex("orc_test", "index1")) {
       sql("create oindex index1 on orc_test (a)")
       withSQLConf(OapConf.OAP_ORC_BINARY_DATA_CACHE_ENABLED.key -> "true") {
-        sql("SELECT * FROM orc_test WHERE b = '1'")
-
+        val cacheManager = OapRuntime.getOrCreate.fiberCacheManager
+        val beforeQuery = cacheManager.dataCacheCount
         checkAnswer(sql("SELECT * FROM orc_test WHERE  b = 'this is test 2'"),
           Row(2, "this is test 2") :: Nil)
-        val cacheManager = OapRuntime.getOrCreate.fiberCacheManager
-        assert(cacheManager.dataCacheCount == 4)
+        assert(cacheManager.dataCacheCount - beforeQuery == 4)
       }
     }
   }
