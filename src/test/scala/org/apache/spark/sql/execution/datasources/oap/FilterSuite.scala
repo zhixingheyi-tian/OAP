@@ -22,11 +22,11 @@ import java.sql.Date
 import org.apache.hadoop.conf.Configuration
 import org.apache.hadoop.fs.Path
 import org.scalatest.BeforeAndAfterEach
-
 import org.apache.spark.sql.{QueryTest, Row}
 import org.apache.spark.sql.catalyst.util.DateTimeUtils
 import org.apache.spark.sql.internal.SQLConf
 import org.apache.spark.sql.internal.oap.OapConf
+import org.apache.spark.sql.oap.OapRuntime
 import org.apache.spark.sql.test.oap.{SharedOapContext, TestIndex, TestPartition}
 import org.apache.spark.sql.types.{IntegerType, StringType, StructField, StructType}
 import org.apache.spark.util.Utils
@@ -304,6 +304,8 @@ class FilterSuite extends QueryTest with SharedOapContext with BeforeAndAfterEac
 
         checkAnswer(sql("SELECT * FROM orc_test WHERE  b = 'this is test 2'"),
           Row(2, "this is test 2") :: Nil)
+        val cacheManager = OapRuntime.getOrCreate.fiberCacheManager
+        assert(cacheManager.dataCacheCount == 4)
       }
     }
   }
