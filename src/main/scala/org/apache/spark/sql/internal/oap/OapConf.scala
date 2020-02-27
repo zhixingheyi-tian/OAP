@@ -75,7 +75,7 @@ object OapConf {
       .doc("PartedByValueStatistics gives statistics with the value interval, default 5")
       .intConf
       .createWithDefault(5)
-  
+
   val OAP_STATISTICS_SAMPLE_RATE =
     SqlConfAdapter.buildConf("spark.sql.oap.statistics.sampleRate")
       .internal()
