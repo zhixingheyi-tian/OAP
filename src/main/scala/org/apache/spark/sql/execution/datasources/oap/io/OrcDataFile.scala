@@ -166,7 +166,10 @@ private[oap] case class OrcDataFile(
 
   private def initVectorizedReader(c: OrcDataFileContext,
       reader: OrcColumnarBatchReader) = {
-    reader.initialize(filePath, configuration)
+    val taskConf = new Configuration(configuration)
+    taskConf.set(OrcConf.INCLUDE_COLUMNS.getAttribute,
+      c.requestedColIds.filter(_ != -1).sorted.mkString(","))
+    reader.initialize(filePath, taskConf)
     reader.initBatch(fileReader.getSchema, c.requestedColIds, c.requiredSchema.fields,
       c.partitionColumns, c.partitionValues)
     val iterator = new FileRecordReaderIterator(reader)
