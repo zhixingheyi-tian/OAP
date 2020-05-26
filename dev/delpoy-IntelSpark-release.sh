@@ -10,7 +10,7 @@ sed -i "s/<groupId>org.apache.spark<\/groupId>/<groupId>com.intel.spark<\/groupI
 
 sed -i "s/<version>3.1.0-SNAPSHOT<\/version>/<version>3.1.0-Beta<\/version>/g" `grep "<version>3.1.0-SNAPSHOT</version>" ./ -rl`
 
-sed '/<parent>/, /<\/parent>/d'  pom.xml
+sed -i '/<parent>/, /<\/parent>/d'  pom.xml
 
 sed -i '/<\/mailingLists>/a <distributionManagement>\n    <snapshotRepository>\n      <id>ossrh<\/id>\n      <url>https://oss.sonatype.org/content/repositories/snapshots<\/url>\n    <\/snapshotRepository>\n    <repository>\n      <id>ossrh<\/id>\n      <url>https://oss.sonatype.org/service/local/staging/deploy/maven2/<\/url>\n    <\/repository>\n  <\/distributionManagement>' pom.xml
 
