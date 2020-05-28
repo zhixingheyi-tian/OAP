@@ -2,7 +2,7 @@ OAP - Optimized Analytics Packages for Spark is a project to optimize Spark by p
 
 Please refer the below documents for more information.
 
-* [Cache](./oap-cache/README.md)
+* [Cache](./oap-cache/oap/README.md)
 * [Shuffle](./oap-shuffle/README.md)
 
 
