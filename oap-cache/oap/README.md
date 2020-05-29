@@ -1,4 +1,4 @@
-# OAP-Cache - Optimized Analytics Package
+# OAP-Cache
 
 OAP-Cache is an optimized plugin package designed to accelerate Spark SQL performance by using index and cache technology. Indexing can improve Spark interative query peformance by as much as an order of magnitude, and caching delivers additonal Spark SQL query performance benefits. We support both DRAM and Intel DCPMM as cache media.
 
