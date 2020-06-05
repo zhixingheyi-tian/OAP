@@ -311,14 +311,10 @@ Optimize your environment by choosing a DCPMM caching strategy (guava, non-evict
 
 Guava cache is based on memkind library, built on top of jemalloc and provides memory characteristics. To use it in your workload, follow [prerequisites](#prerequisites-1) to set up DCPMM hardware and memkind library correctly. Then follow bellow configurations.
 
-Memkind library also support DAX KMEM mode. Refer [Kernel](https://github.com/memkind/memkind#kernel), this chapter will guide how to configure persistent memory as system ram. Or [Memkind support for KMEM DAX option](https://pmem.io/2020/01/20/memkind-dax-kmem.html) for more details.
-
-Please note that DAX KMEM mode need kernel version 5.x and memkind version 1.10 or above.
-
 For Parquet data format, add these conf options:
 ```
 spark.sql.oap.parquet.data.cache.enable           true
-spark.sql.oap.fiberCache.memory.manager           pm / kmem
+spark.sql.oap.fiberCache.memory.manager           pm 
 spark.oap.cache.strategy                          guava
 spark.sql.oap.fiberCache.persistent.memory.initial.size    *g
 spark.sql.extensions                              org.apache.spark.sql.OapExtensions
@@ -328,10 +324,17 @@ For Orc data format, add these conf options:
 spark.sql.orc.copyBatchToSpark                   true
 spark.sql.oap.orc.data.cache.enable              true
 spark.sql.oap.orc.enable                         true
-spark.sql.oap.fiberCache.memory.manager          pm / kmem
+spark.sql.oap.fiberCache.memory.manager          pm 
 spark.oap.cache.strategy                         guava
 spark.sql.oap.fiberCache.persistent.memory.initial.size      *g
 spark.sql.extensions                             org.apache.spark.sql.OapExtensions
+```
+
+Memkind library also support DAX KMEM mode. Refer [Kernel](https://github.com/memkind/memkind#kernel), this chapter will guide how to configure persistent memory as system ram. Or [Memkind support for KMEM DAX option](https://pmem.io/2020/01/20/memkind-dax-kmem.html) for more details.
+
+Please note that DAX KMEM mode need kernel version 5.x and memkind version 1.10 or above. If you choose KMEM mode, change memory manager from `pm` to `kmem` as below.
+```
+spark.sql.oap.fiberCache.memory.manager           kmem
 ```
 
 #### Non-evictable cache
@@ -406,11 +409,9 @@ spark.sql.oap.cache.external.client.pool.size              10
 
 ### Index/Data cache separation
 
-OAP-Cache now supports different cache strategies, which includes `guava`, `vmemcache`, `simple` and `noevict`, for DRAM and DCPMM. To optimize the cache media utilization, you can enable cache separation of data and index with same or different cache media. When Sharing same media, data cache and index cache will use different fiber cache ratio.
+OAP-Cache now supports different cache strategies for DRAM and DCPMM. To optimize the cache media utilization, you can enable cache separation of data and index with same or different cache media. When Sharing same media, data cache and index cache will use different fiber cache ratio.
+
 Here we list 4 different kinds of configs for index/cache separation, if you choose one of them, please add corresponding configs to `spark-defaults.conf`.
-
-now supports different cache back-ends for the `offheap` and `pm` memory managers. To optimize cache media utilization, enable cache separation of data and index with different cache media and strategies as shown below. Note that when sharing the same media, the data cache and index cache will use a different fiber cache ratio. If you choose one of the following 4 configurations, add the corresponding settings to `spark-defaults.conf`. 
-
 1. DRAM(`offheap`) as cache media, `guava` strategy as index, and data cache back end. 
 
 ```
