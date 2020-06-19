@@ -1,37 +1,9 @@
 sudo: required
 dist: trusty
-language: java
+language: generic
 jobs:
   include:
-    #Other modules can refer to oap-cache-oap to build independent travis-ci job,
-    #oap-cache-oap is a CI building demo of the corresponding module oap-cache/oap.
-    - name: oap-cache-oap
-      before_install:
-      - sudo apt-get install libpthread-stubs0-dev
-      - sudo apt-get install libnuma-dev
-      - sudo apt-get install cmake
-      install:
-      - # Download spark 2.4.4
-      - "[ -f spark ] || mkdir spark && cd spark && wget http://archive.apache.org/dist/spark/spark-2.4.4/spark-2.4.4-bin-hadoop2.7.tgz && cd .."
-      - "tar -xf ./spark/spark-2.4.4-bin-hadoop2.7.tgz"
-      - "export SPARK_HOME=`pwd`/spark-2.4.4-bin-hadoop2.7"
-      before_script:
-      - cd ${TRAVIS_BUILD_DIR}/dev
-      - ./install_vmemcache.sh
-      - ./install_memkind.sh
-      script:
-      - cd ${TRAVIS_BUILD_DIR}
-      - mvn clean test -pl  com.intel.oap:oap-cache -q -Ppersistent-memory  -Pvmemcache  -am
-    - name: oap-remote-shuffle
-      install:
-      # travis will add a command by default
-      # mvn install -DskipTests=true -Dmaven.javadoc.skip=true -B -V
-      # if we don't define an install step in our job,this command will run before all the commands in our travis.yml and run in ${TRAVIS_BUILD_DIR} directory according to our pom.xml in ${TRAVIS_BUILD_DIR}
-      # better way to define at least one install step and one script step in a job even if there is no actual actions in them
-      - #empty install step
-      script:
-      - cd ${TRAVIS_BUILD_DIR}/oap-shuffle/remote-shuffle
-      - mvn -q test
+      
     - name: oap-Rpmem-shuffle
       dist: bionic
       jdk:
@@ -44,10 +16,10 @@ jobs:
       - "export JAVA_HOME=/usr/lib/jvm/java-8-openjdk-amd64" 
       - export |grep JAVA_HOME
       install:
-      - # Download spark 2.4.4
-      - "[ -f spark ] || mkdir spark && cd spark && wget http://archive.apache.org/dist/spark/spark-2.4.4/spark-2.4.4-bin-hadoop2.7.tgz && cd .."
-      - "tar -xf ./spark/spark-2.4.4-bin-hadoop2.7.tgz"
-      - "export SPARK_HOME=`pwd`/spark-2.4.4-bin-hadoop2.7"
+      - # Download spark 3.0
+      - "[ -f spark ] || mkdir spark && cd spark && wget http://archive.apache.org/dist/spark/spark-3.0.0-preview2/spark-3.0.0-preview2-bin-hadoop2.7.tgz && cd .."
+      - "tar -xf ./spark/spark-3.0.0-preview2-bin-hadoop2.7.tgz"
+      - "export SPARK_HOME=`pwd`/spark-3.0.0-preview2-bin-hadoop2.7"
       before_script:
       - cd /tmp
       #libfabric   
@@ -61,6 +33,9 @@ jobs:
       - make -j && sudo make install
       - cd ../java/hpnl
       - sudo mvn install -B -Dorg.slf4j.simpleLogger.log.org.apache.maven.cli.transfer.Slf4jMavenTransferListener=warn
+      #ndctl 
+      - cd /tmp
+      - git clone https://github.com/pmem/ndctl.git && cd ndctl && git checkout v63 &&  ./autogen.sh &&  ./configure CFLAGS='-g -O2' --prefix=/usr --sysconfdir=/etc --libdir=/usr/lib64 &&  make -j &&  make check &&  sudo make install 
       #PMDK
       - cd /tmp
       - git clone https://github.com/pmem/pmdk.git &&  cd pmdk && git checkout tags/1.8
@@ -71,7 +46,8 @@ jobs:
       - cd /tmp
       - git clone https://github.com/efficient/libcuckoo && cd libcuckoo && mkdir build && cd build  && cmake -DCMAKE_INSTALL_PREFIX=/usr/local -DBUILD_EXAMPLES=1 -DBUILD_TESTS=1 ..
       - make all && sudo make install
-      script:
-      - cd ${TRAVIS_BUILD_DIR}/oap-shuffle/RPMem-shuffle
+      - cd /tmp
+      - git clone https://github.com/Intel-bigdata/Spark-PMoF.git
+      - cd Spark-PMoF
       # skip tests, do tests locally 
       - sudo mvn install -DskipTests -B -Dorg.slf4j.simpleLogger.log.org.apache.maven.cli.transfer.Slf4jMavenTransferListener=warn
