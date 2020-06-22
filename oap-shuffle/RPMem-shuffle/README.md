@@ -1,5 +1,5 @@
-#  Spark-PMoF: RPMem extension for Spark Shuffle
-Spark-PMoF (Persistent Memory over Fabric), RPMem extension for Spark Shuffle, is a Spark Shuffle Plugin which enables persistent memory and high performance fabric technology like RDMA for Spark shuffle to improve Spark performance in shuffle intensive scneario. 
+#  Shuffle Remote PMem Extension
+Shuffle Remote PMem Extension is a Spark Shuffle plugin which enables persistent memory and high performance fabric technology like RDMA for Spark shuffle to improve Spark performance in shuffle intensive scneario. 
 
 ## Contents
 - [Introduction](#introduction)
