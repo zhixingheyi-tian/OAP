@@ -14,6 +14,15 @@ if [ -z "$DEV_PATH" ]; then
   cd -
 fi
 
+if [[ ! -z $(which yum) ]]; then
+    INSTALL_TOOL="yum "
+elif [[ ! -z $(which apt-get) ]]; then
+    INSTALL_TOOL="apt-get "
+else
+    echo "error can't install package $PACKAGE"
+    exit 1;
+fi
+
 function version_lt() { test "$(echo "$@" | tr " " "\n" | sort -rV | head -n 1)" != "$1"; }
 
 function version_ge() { test "$(echo "$@" | tr " " "\n" | sort -rV | head -n 1)" == "$1"; }
@@ -25,6 +34,7 @@ function prepare_maven() {
     echo "mvn is installed"
   else
     echo "mvn is not installed"
+    $INSTALL_TOOL -y install wget
     wget https://mirrors.cnnic.cn/apache/maven/maven-3/$MAVEN_TARGET_VERSION/binaries/apache-maven-$MAVEN_TARGET_VERSION-bin.tar.gz
     mkdir -p /usr/local/maven
     tar -xzvf apache-maven-$MAVEN_TARGET_VERSION-bin.tar.gz
@@ -58,7 +68,7 @@ function prepare_cmake() {
       ./bootstrap
       gmake
       gmake install
-      yum remove cmake -y
+      $INSTALL_TOOL remove cmake -y
       ln -s /usr/local/bin/cmake /usr/bin/
       cd  $DEV_PATH
     fi
@@ -82,9 +92,9 @@ function prepare_cmake() {
 
 function install_gcc7() {
   #for gcc7
-  yum -y install gmp-devel
-  yum -y install mpfr-devel
-  yum -y install libmpc-devel
+  $INSTALL_TOOL -y install gmp-devel
+  $INSTALL_TOOL -y install mpfr-devel
+  $INSTALL_TOOL -y install libmpc-devel
 
   cd $DEV_PATH/thirdparty
 
@@ -116,13 +126,13 @@ function prepare_memkind() {
   git pull
   git checkout v1.10.0-oap-0.7
 
-  yum -y install autoconf
-  yum -y install automake
-  yum -y install gcc-c++
-  yum -y install libtool
-  yum -y install numactl-devel
-  yum -y install unzip
-  yum -y install libnuma-devel
+  $INSTALL_TOOL -y install autoconf
+  $INSTALL_TOOL -y install automake
+  $INSTALL_TOOL -y install gcc-c++
+  $INSTALL_TOOL -y install libtool
+  $INSTALL_TOOL -y install numactl-devel
+  $INSTALL_TOOL -y install unzip
+  $INSTALL_TOOL -y install libnuma-devel
 
   ./autogen.sh
   ./configure
@@ -149,7 +159,7 @@ function prepare_vmemcache() {
   git pull
   mkdir -p build
   cd build
-  yum -y install rpm-build
+  $INSTALL_TOOL -y install rpm-build
   cmake .. -DCMAKE_INSTALL_PREFIX=/usr -DCPACK_GENERATOR=rpm
   make package
   sudo rpm -i libvmemcache*.rpm
@@ -180,7 +190,7 @@ function prepare_libfabric() {
 }
 
 function prepare_HPNL(){
-  yum -y install cmake boost-devel boost-system
+  $INSTALL_TOOL -y install cmake boost-devel boost-system
   mkdir -p $DEV_PATH/thirdparty
   cd $DEV_PATH/thirdparty
   if [ ! -d "HPNL" ]; then
@@ -198,8 +208,8 @@ function prepare_HPNL(){
 }
 
 function prepare_ndctl() {
-  yum install -y autoconf asciidoctor kmod-devel.x86_64 libudev-devel libuuid-devel json-c-devel jemalloc-devel
-  yum groupinstall -y "Development Tools"
+  $INSTALL_TOOL install -y autoconf asciidoctor kmod-devel.x86_64 libudev-devel libuuid-devel json-c-devel jemalloc-devel
+  $INSTALL_TOOL groupinstall -y "Development Tools"
   mkdir -p $DEV_PATH/thirdparty
   cd $DEV_PATH/thirdparty
   if [ ! -d "ndctl" ]; then
@@ -215,7 +225,7 @@ function prepare_ndctl() {
 }
 
 function prepare_PMDK() {
-  yum install -y pandoc
+  $INSTALL_TOOL install -y pandoc
   mkdir -p $DEV_PATH/thirdparty
   cd $DEV_PATH/thirdparty
   if [ ! -d "pmdk" ]; then
@@ -233,7 +243,9 @@ function prepare_PMDK() {
 function prepare_libcuckoo() {
   mkdir -p $DEV_PATH/thirdparty
   cd $DEV_PATH/thirdparty
-  git clone https://github.com/efficient/libcuckoo
+  if [ ! -d "libcuckoo" ]; then
+    git clone https://github.com/efficient/libcuckoo
+  fi
   cd libcuckoo
   mkdir build
   cd build
@@ -262,6 +274,7 @@ function oap_build_help() {
     echo " prepare_memkind    = function to install Memkind"
     echo " prepare_cmake      = function to install Cmake"
     echo " prepare_vmemcache  = function to install Vmemcache"
+    echo " install_gcc7       = function to install gcc7"
     echo " prepare_PMoF       = function to install prerequisites of PMoF"
     echo " prepare_all        = function to install all the above"
 }
