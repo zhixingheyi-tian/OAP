@@ -9,8 +9,9 @@ Revision 1.4
 [2. Recommended HW environment](#recommended-hw-environment)  
 [3. Install and configure PMem](#install-and-configure-pmem)  
 [4. Configure and Validate RDMA](#configure-and-validate-rdma)  
-[5. Install RPMem shuffle extension for Spark](#install-rpmem-shuffle-extension-for-spark)  
-[6. RPMem Shuffle Extension for Spark Testing](#rpmem-shffle-extension-for-spark-testing)  
+[5. Install dependencies for RPMem shuffle extension](#install-dependencies-for-rpmem-shuffle-extension)  
+[6. Install RPMem shuffle extension for Spark](#install-rpmem-shuffle-extension-for-spark)  
+[7. RPMem Shuffle Extension for Spark Testing](#rpmem-shffle-extension-for-spark-testing)  
 [Reference](#reference)   
 
 ## <a id="notes"></a>Notes 
@@ -341,10 +342,10 @@ ping data: rdma-ping-3: DEFGHIJKLMNOPQRSTUVWXYZ[\]^_`abcdefghijklmnopqrstu
 ```
 Please refer to your NIC manuual for detail instructions on how to validate RDMA works. 
 
-## <a id="install-rpmem-shuffle-extension-for-spark"></a>5. Install RPMem shuffle extension for Spark
+## <a id="install-dependencies-for-rpmem-shuffle-extension"></a>5. Install dependencies for RPMem shuffle extension
 ---------------------------
 
-### 5.1.1 Install HPNL (<https://github.com/Intel-bigdata/HPNL>)
+### 5.1 Install HPNL (<https://github.com/Intel-bigdata/HPNL>)
 If you have completed all steps in installation guide,  you can ignore this section and refer to [5.3 Configure RPMem extension for spark shuffle in Spark](#53-configure-rpmem-extension-for-spark-shuffle-in-spark).
 
 ----------------------------------------------------------
@@ -366,7 +367,7 @@ git checkout v1.6.0
 ./configure --disable-sockets --enable-verbs --disable-mlx
 make -j && sudo make install
 ```
-### 5.1.2 Build and install HPNL
+#### 5.1.1 Build and install HPNL
 
 Assume *Project_root_path* is HPNL folder’s path, *HPNL* here. 
 
@@ -385,10 +386,8 @@ make -j && make install
 cd ${project_root_path}/java/hpnl
 mvn install
 ```
-### 5.2 Install RPMem extension for spark shuffle
----------------------------------------------
 
-#### 5.2.1 install dependencies
+### 5.2 install basic C library dependencies
 --------------------------
 ```bash
 yum install -y autoconf asciidoctor kmod-devel.x86\_64 libudev-devel
@@ -396,7 +395,7 @@ yum install -y autoconf asciidoctor kmod-devel.x86\_64 libudev-devel
 yum groupinstall -y "Development Tools"
 ```
 
-#### 5.2.2 install ndctl
+### 5.3 install ndctl
 -------------------
 This can be installed with your package managmenet tool as well. 
 ```bash
@@ -411,7 +410,7 @@ make check
 make install
 ```
  
-#### 5.2.3 install PMDK
+### 5.4 install PMDK
 ------------------
 
 ```bash
@@ -425,7 +424,7 @@ echo “export PKG_CONFIG_PATH=/usr/local/lib64/pkgconfig/:$PKG_CONFIG_PATH” >
 
 ```
 
-#### 5.2.4 Install RPMem extension for spark shuffle
+### 5.5 Install RPMem extension
 -----------------------------------------------
 ```bash
 git clone  https://github.com/efficient/libcuckoo
@@ -439,7 +438,10 @@ mvn install -DskipTests
 
 ```
 
-### 5.3 Configure RPMem extension for spark shuffle in Spark
+## <a id="install-rpmem-shuffle-extension-for-spark"></a>6. Install RPMem shuffle extension for Spark
+---------------------------
+
+### 6.1 Configure RPMem extension for spark shuffle in Spark
 --------------------------------------------------------
 
 RPMem shuffle extension for spark shuffle is designed as a plugin to Spark.
@@ -540,30 +542,30 @@ spark.driver.rhost                                              $IP //change to 
 spark.driver.rport                                              61000
 
 ```
-## <a id="rpmem-shffle-extension-for-spark-testing"></a>6. RPMem Shuffle Extension for Spark Testing 
+## <a id="rpmem-shffle-extension-for-spark-testing"></a>7. RPMem Shuffle Extension for Spark Testing 
 -----------------------------
 
 RPmem shuffle extension have been tested and validated with Terasort and Decision support worklods. 
 
-### 6.1 Decision support workloads 
+### 7.1 Decision support workloads 
 -------------------------------
 
 The  Decision support workloads is a decision support benchmark that
 models several general applicable aspects of a decision support system,
 including queries and data maintenance.
 
-#### 6.1.1 Download spark-sql-perf
+#### 7.1.1 Download spark-sql-perf
 
 The link is <https://github.com/databricks/spark-sql-perf> and follow
 README to use sbt build the artifact.
 
-#### 6.1.2 Download the kit 
+#### 7.1.2 Download the kit 
 
 As per instruction from spark-sql-perf README, tpcds-kit is required and
 please download it from <https://github.com/databricks/tpcds-kit>,
 follow README to setup the benchmark.
 
-#### 6.1.3 Prepare data
+#### 7.1.3 Prepare data
 
 As an example, generate parquet format data to HDFS with 1TB data scale.
 The data stored path, data format and data scale are configurable.
@@ -600,7 +602,7 @@ sql(s"create database $databaseName")
 tables.createExternalTables(rootDir, "parquet", databaseName, overwrite = true, discoverPartitions = true)
 
 ```
-#### 6.1.4 Run the benchmark
+#### 7.1.4 Run the benchmark
 
 Launch DECISION SUPPORT WORKLOADS queries on generated data, check
 *benchmark.scale* below as a sample, it runs query64.
@@ -633,32 +635,32 @@ resultLocation = resultLocation,
 forkThread = true)
 experiment.waitForFinish(timeout)
 ```
-#### 6.1.5 Check the result
+#### 7.1.5 Check the result
 
 Check the result under *tpcds\_1T\_result* folder. It can be an option
 to check the result at spark history server. (Need to start history server by
 *\$SPARK\_HOME/sbin/start-history-server.sh*)
 
-### 6.2 TeraSort
+### 7.2 TeraSort
 ------------
 
 TeraSort is a benchmark that measures the amount of time to sort one
 terabyte of randomly distributed data on a given computer system.
 
-#### 6.2.1 Download HiBench
+#### 7.2.1 Download HiBench
 This guide uses HiBench for Terasort tests, <https://github.com/Intel-bigdata/HiBench>. HiBench is a
 big data benchmark suite and contains a set of Hadoop, Spark and
 streaming workloads including TeraSort.
 
-#### 6.2.2 Build HiBench as per instructions from [build-bench](https://github.com/Intel-bigdata/HiBench/blob/master/docs/build-hibench.md). 
+#### 7.2.2 Build HiBench as per instructions from [build-bench](https://github.com/Intel-bigdata/HiBench/blob/master/docs/build-hibench.md). 
 
-#### 6.2.3 Configuration
+#### 7.2.3 Configuration
 
 Modify *\$HiBench-HOME/conf/spark.conf* to specify the spark home and
 other spark configurations. It will overwrite the configuration of
 *\$SPARK-HOME/conf/spark-defaults.conf* at run time.
 
-#### 6.2.4 Launch the benchmark
+#### 7.2.4 Launch the benchmark
 
 Need to prepare the data with
 
@@ -698,7 +700,7 @@ leave_bench
 
 ```
 
-#### 6.2.5 Check the result
+#### 7.2.5 Check the result
 
 Check the result at spark history server to see the execution time and
 other spark metrics like spark shuffle spill status. (Need to start
