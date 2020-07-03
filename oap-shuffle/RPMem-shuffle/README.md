@@ -379,7 +379,7 @@ cd HPNL
 git checkout origin/spark-pmof-test --track
 git submodule update --init --recursive
 mkdir build; cd build
-cmake -DWITH_VERBS=ON
+cmake -DWITH_VERBS=ON ..
 make -j && make install
 cd ${project_root_path}/java/hpnl
 mvn install
