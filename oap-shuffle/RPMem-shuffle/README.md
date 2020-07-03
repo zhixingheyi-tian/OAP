@@ -1,20 +1,18 @@
-# Shuffle Remote PMem extension for Apache Spark Guide
-
-June 2020
+# Shuffle Remote PMem Extension for Apache Spark Guide
 
 
-[1. RPMem shuffle extension introduction](#rpmem-shuffle-extension-introduction)  
+[1. Shuffle Remote PMem Extension introduction](#shuffle-remote-pmem-extension-introduction)  
 [2. Recommended HW environment](#recommended-hw-environment)  
 [3. Install and configure PMem](#install-and-configure-pmem)  
 [4. Configure and Validate RDMA](#configure-and-validate-rdma)  
-[5. Install dependencies for RPMem shuffle extension](#install-dependencies-for-rpmem-shuffle-extension)  
-[6. Install RPMem shuffle extension for Spark](#install-rpmem-shuffle-extension-for-spark)  
-[7. RPMem Shuffle Extension for Spark Testing](#rpmem-shffle-extension-for-spark-testing)  
+[5. Install dependencies for Shuffle Remote PMem Extension](#install-dependencies-for-shuffle-remote-pmem-extension)  
+[6. Install Shuffle Remote PMem Extension for Spark](#install-shuffle-remote-pmem-extension-for-spark)  
+[7. Shuffle Remote PMem Extension for Spark Testing](#shuffle-remote-pmem-extension-for-spark-testing)  
 [Reference](#reference)   
 
 
 
-Shuffle RPMem extension for Spark (AKA. RPMem shuffle extension, previously Spark-PMoF) depends on multiple
+Shuffle Remote PMem Extension for Spark (AKA. Shuffle Remote PMem Extension, previously Spark-PMoF) depends on multiple
 native libraries like libfabrics, libcuckoo, PMDK. This enabling guide
 covers the installing process for the time being, but it might change as
 the install commands and related dependency packages for the 3rd party
@@ -22,7 +20,7 @@ libraries might vary depending on the OS version and distribution you are
 using.
 Yarn, HDFS, Spark installation and configuration is out of the scope of this document.
 
-## <a id="rpmem-shuffle-extension-introduction"></a>1. RPMem shuffle extension introduction
+## <a id="shuffle-remote-pmem-extension-introduction"></a>1. Shuffle Remote PMem Extension introduction
 
 Intel Optane DC persistent memory is the next-generation storage
 at memory speed. It closes the performance gap between DRAM memory
@@ -34,13 +32,13 @@ small random disk IO, serialization, network data transmission, and thus
 contributes a lot to job latency and could be the bottleneck for
 workloads performance.
 
-RPMem shuffle extension for spark (previously Spark PMoF)
+Shuffle Remote PMem Extension for spark (previously Spark PMoF)
 <https://github.com/Intel-bigdata/Spark-PMoF>) is a Persistent Memory
 over Fabrics (PMoF) plugin for Spark shuffle, which leverages the RDMA
 network and remote persistent memory (for read) to provide extremely
 high performance and low latency shuffle solutions for Spark to address performance issues for shuffle intensive workloads. 
 
-RPMem shuffle Extension brings follow benefits:
+Shuffle Remote PMem Extension brings follow benefits:
 
 -   Leverage high performance persistent memory as shuffle media as well
     as spill media, increased shuffle performance and reduced memory
@@ -49,13 +47,13 @@ RPMem shuffle Extension brings follow benefits:
     copies with zero-copy remote access to persistent memory.
 -   Leveraging RDMA for network offloading
 
-The Figure 1 shows the high level architecture of RPMem shuffle extension, it shows how data flows between Spark and shuffle devices in
-RPMem extension for spark shuffle and Vanilla Spark. In this guide, we
-will introduce how to deploy and use RPMem shuffle extension for Spark.
+The Figure 1 shows the high level architecture of Shuffle Remote PMem Extension, it shows how data flows between Spark and shuffle devices in
+Shuffle Remote PMem Extension for spark shuffle and Vanilla Spark. In this guide, we
+will introduce how to deploy and use Shuffle Remote PMem Extension for Spark.
 
 ![architecture](./doc/images/RPMem_shuffle_architecture.png)
 
-Figure 1: RPMem shuffle extension for Spark
+Figure 1: Shuffle Remote PMem Extension for Spark
 
 ## <a id="recommended-hw-environment"></a>2. Recommended HW environment
 
@@ -90,7 +88,7 @@ Master node can be co-located with one of the Hadoop data nodes.
 ### 2.2. Recommended RDMA NIC
 -------------------------
 
-RPMem shuffle extension  is using HPNL
+Shuffle Remote PMem Extension is using HPNL
 (<https://cloud.google.com/solutions/big-data/>) for network
 communication, which leverages libfabric for efficient network
 communication, so a RDMA capable NIC is recommended. Libfabric supports
@@ -125,7 +123,7 @@ installation/enabling or FW installation is out of the scope of this guide.
     c.  Run *ndctl create-namespace -m devdax -r region1 –s 120g*  
     d.  Run *ndctl create-namespace -m devdax -r region1 –s 120g*  
     This will create four namespaces, namely /dev/dax0.0, /dev/dax0.1, /dev/dax1.0,
-        /dev/dax1.1 in that node, and it will be used as RPMem shuffle media. 
+        /dev/dax1.1 in that node, and it will be used as Shuffle Remote PMem Extension media. 
 
         You can change your configuration (namespaces numbers, size) accordingly.
 
@@ -340,10 +338,10 @@ ping data: rdma-ping-3: DEFGHIJKLMNOPQRSTUVWXYZ[\]^_`abcdefghijklmnopqrstu
 ```
 Please refer to your NIC manuual for detail instructions on how to validate RDMA works. 
 
-## <a id="install-dependencies-for-rpmem-shuffle-extension"></a>5. Install dependencies for RPMem shuffle extension
+## <a id="install-dependencies-for-shuffle-remote-pmem-extension"></a>5. Install dependencies for Shuffle Remote PMem Extension
 ---------------------------
 
-If you have completed all steps in installation guide,  you can ignore this section and refer to [6. Install RPMem shuffle extension for Spark](#6-install-rpmem-shuffle-extension-for-spark).
+If you have completed all steps in installation guide,  you can ignore this section and refer to [6. Install Shuffle Remote PMem Extension for Spark](#6-install-shuffle-remote-pmem-extension-for-spark).
 
 ### 5.1 Install HPNL (<https://github.com/Intel-bigdata/HPNL>)
 
@@ -438,16 +436,16 @@ mvn install -DskipTests
 
 ```
 
-## <a id="install-rpmem-shuffle-extension-for-spark"></a>6. Install RPMem shuffle extension for Spark
+## <a id="install-shuffle-remote-pmem-extension-for-spark"></a>6. Install Shuffle Remote PMem Extension for Spark
 ---------------------------
 
 ### 6.1 Configure RPMem extension for spark shuffle in Spark
 --------------------------------------------------------
 
-RPMem shuffle extension for spark shuffle is designed as a plugin to Spark.
+Shuffle Remote PMem Extension for spark shuffle is designed as a plugin to Spark.
 Currently the plugin supports Spark 2.4.4 and works well on various
 Network fabrics, including Socket, RDMA and Omni-Path. There are several
-configurations files needs to be modified in order to run RPMem shuffle extension. 
+configurations files needs to be modified in order to run Shuffle Remote PMem Extension. 
 
 #### Prerequisite
 Use below command to remove original initialization of one PMem, this is a
@@ -542,7 +540,7 @@ spark.driver.rhost                                              $IP //change to 
 spark.driver.rport                                              61000
 
 ```
-## <a id="rpmem-shffle-extension-for-spark-testing"></a>7. RPMem Shuffle Extension for Spark Testing 
+## <a id="shuffle-remote-pmem-extension-for-spark-testing"></a>7. Shuffle Remote PMem Extension for Spark Testing 
 -----------------------------
 
 RPmem shuffle extension have been tested and validated with Terasort and Decision support workloads. 
