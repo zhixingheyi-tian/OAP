@@ -262,8 +262,8 @@ Set PFC:
 mlnx_qos -i ens803f1 --pfc 0,0,0,1,0,0,0,0
 modprobe 8021q
 vconfig add ens803f1  100
-ifconfig ens803f1.100 172.168.0.209/16 up
-ifconfig ens803f1 172.167.0.209/16 up
+ifconfig ens803f1.100 $ip1/$mask up //change to your own IP 
+ifconfig ens803f1 $ip2/$mask up //Change to your own IP 
 for i in {0..7}; do vconfig set_egress_map ens803f1.100 $i 3 ; done
 tc_wrap.py -i ens803f1 -u 3,3,3,3,3,3,3,3,3,3,3,3,3,3,3,3
 ```
@@ -293,7 +293,7 @@ Example:
 
 On the server side:
 ```bash 
-rping -sda 172.168.0.209
+rping -sda $ip1
 created cm_id 0x17766d0
 rdma_bind_addr successful
 rdma_listen
@@ -309,7 +309,7 @@ Received rkey 96b40 addr 17ce1e0 len 64 from peer
 server received sink adv
 rdma write from lkey 143c0 laddr 1771190 len 64
 rdma write completion
-rping -sda 172.168.0.209
+rping -sda $ip2
 created cm_id 0x17766d0
 rdma_bind_addr successful
 rdma_listen
@@ -332,7 +332,7 @@ rdma write completion
 On Client run: rping -cdVa &lt;Target IP&gt;
 
 ```bash 
-# Client side use .100 ip 172.168.0.209
+# Client side use .100 ip 172.168.0.209 for an example 
 rping -c -a 172.168.0.209 -v -C 4
 ping data: rdma-ping-0: ABCDEFGHIJKLMNOPQRSTUVWXYZ[\]^_`abcdefghijklmnopqr
 ping data: rdma-ping-1: BCDEFGHIJKLMNOPQRSTUVWXYZ[\]^_`abcdefghijklmnopqrs
@@ -535,8 +535,8 @@ spark.shuffle.pmof.reduce_serializer_buffer_size 		262144
 spark.shuffle.pmof.chunk_size                                 	262144
 spark.shuffle.pmof.server_pool_size                      	3
 spark.shuffle.pmof.client_pool_size                       	3
-spark.shuffle.pmof.node                                         sr609-172.168.0.209,sr611-172.168.0.211//Host-IP pairs 
-spark.driver.rhost                                              172.168.0.209 //change to your host IP 
+spark.shuffle.pmof.node                                         $HOST1-$IP1,$HOST2-$IP2//Host-IP pairs, $hostname-$ip
+spark.driver.rhost                                              $IP //change to your host IP 
 spark.driver.rport                                              61000
 
 ```
@@ -739,8 +739,8 @@ spark.shuffle.pmof.reduce_serializer_buffer_size            262144
 spark.shuffle.pmof.chunk_size                               262144
 spark.shuffle.pmof.server_pool_size                         3
 spark.shuffle.pmof.client_pool_size                         3
-spark.shuffle.pmof.node                                     sr609-172.168.0.209,sr611-172.168.0.211
-spark.driver.rhost                                          172.168.0.209 //change to your host
+spark.shuffle.pmof.node                                     $host1-$IP1,$host2-$IP2//HOST-IP Pair, seperate with ","
+spark.driver.rhost                                          $IP //change to your host
 spark.driver.rport                                          61000
 ```
 ### Reference guides (without BKC access)
