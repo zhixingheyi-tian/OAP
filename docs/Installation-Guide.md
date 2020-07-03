@@ -9,10 +9,10 @@ This document provides information for guiding you how to compile OAP and its de
 
 ## Prerequisites 
 
-- **OS Requirements**
+- **OS Requirements**  
 We have tested OAP on Fedora 29 and CentOS 7.6. We remmend you use Fedora 29 and CentOS 7.6 or above.
 
-- **Requirements for Shuffle Remote PMem Extension**
+- **Requirements for Shuffle Remote PMem Extension**  
 If you want to use Shuffle Remote PMem Extension, you need to configure and validate RDMA before this installation steps. You can refer to [Shuffle Remote PMem Extension Guide](../oap-shuffle/RPMem-shuffle/README.md#4-configure-and-validate-rdma) for the details of configuring and validating RDMA.
 
 ###  Install prerequisites 
@@ -33,7 +33,7 @@ git clone -b branch-0.8-spark-2.4.x  https://github.com/Intel-bigdata/OAP.git
 cd OAP
 ```
 
-Note: The following prepare process needs to run as the root user. And assume you run the following commands under the OAP root directory.
+**Note: The following prepare process needs to run as the root user. And assume you run the following commands under the OAP home directory.**
 
 If you want to use Shuffle Remote PMem Extension feature and have completed the RDMA configuring and validating steps, execute the following commands to run the preparing process:
 ```shell script
@@ -57,7 +57,7 @@ If there are any problems during the above preparing process, we recommend you t
 
 
 ## Compiling OAP
-If you have installed all prerequisites, you can download our pre-built package [oap-product-0.8.1-bin-spark-2.4.4.tar.gz](https://github.com/Intel-bigdata/OAP/releases/download/v0.8.1-spark-2.4.4/oap-product-0.8.1-bin-spark-2.4.4.tar.gz)  to your working node, unzip it and put the jars to your working directory such as `/home/oap/jars/`, and put the `oap-common-0.8.1-with-spark-2.4.4.jar` to the directory `$SPARK_HOME/jars/`. If you’d like to build from source code,  you can use make-distribution.sh to generate all jars under the dictionary $OAP_HOME/dev/release-package.
+If you have installed all prerequisites, you can download our pre-built package [oap-product-0.8.1-bin-spark-2.4.4.tar.gz](https://github.com/Intel-bigdata/OAP/releases/download/v0.8.1-spark-2.4.4/oap-product-0.8.1-bin-spark-2.4.4.tar.gz)  to your working node, unzip it and put the jars to your working directory such as `/home/oap/jars/`, and put the `oap-common-0.8.1-with-spark-2.4.4.jar` to the directory `$SPARK_HOME/jars/`. If you’d like to build from source code,  you can use make-distribution.sh to generate all jars under the dictionary ./dev/release-package in OAP home.
 ```shell script
 sh ./dev/make-distribution.sh
 ``````
@@ -68,12 +68,12 @@ mvn clean -pl com.intel.oap:oap-cache -am package
 ```
 
 ```shell script
-# build Shuffle Remote PMem Extension
+# build Shuffle Remote PMem Extension module
 mvn clean -pl com.intel.oap:oap-rpmem-shuffle -am package 
 ```
 
 ```shell script
-# build RDD Cache PMem Extension
+# build RDD Cache PMem Extension module
 mvn clean -pl com.intel.oap:oap-spark -am package 
 ```
 
