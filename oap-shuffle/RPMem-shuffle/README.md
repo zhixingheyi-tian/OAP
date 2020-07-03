@@ -459,7 +459,7 @@ pmempool rm ${device_name}
 
 #### Enable RPMemShuffle
 ```bash
-spark.shuffle.manager						                    org.apache.spark.shuffle.pmof.PmofShuffleManager
+spark.shuffle.manager						 org.apache.spark.shuffle.pmof.PmofShuffleManager
 spark.driver.extraClassPath                                     /$path /Spark-PMoF/core/target/Spark-PMoF-1.0-jar-with-dependencies.jar
 spark.executor.extraClassPath                                   /$path/Spark-PMoF/core/target/Spark-PMoF-1.0-jar-with-dependencies.jar
 
