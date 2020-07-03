@@ -343,8 +343,9 @@ Please refer to your NIC manuual for detail instructions on how to validate RDMA
 ## <a id="install-dependencies-for-rpmem-shuffle-extension"></a>5. Install dependencies for RPMem shuffle extension
 ---------------------------
 
+If you have completed all steps in installation guide,  you can ignore this section and refer to [6. Install RPMem shuffle extension for Spark](#6-install-rpmem-shuffle-extension-for-spark).
+
 ### 5.1 Install HPNL (<https://github.com/Intel-bigdata/HPNL>)
-If you have completed all steps in installation guide,  you can ignore this section and refer to [5.3 Configure RPMem extension for spark shuffle in Spark](#53-configure-rpmem-extension-for-spark-shuffle-in-spark).
 
 ----------------------------------------------------------
 
