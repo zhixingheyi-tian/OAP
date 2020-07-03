@@ -48,7 +48,7 @@ The following are required to configure OAP to use DCPMM cache.
 
    In this case file systems are generated for 2 numa nodes, which can be checked by "numactl --hardware". For a different number of numa nodes, a corresponding number of namespaces should be created to assure correct file system paths mapping to numa nodes.
 
-- Make sure [Memkind](http://memkind.github.io/memkind/) library installed on every cluster worker node. Compile Memkind based on your system or directly place our pre-built binary of [libmemkind.so.0](https://github.com/Intel-bigdata/OAP/releases/download/v0.8.0-spark-2.4.4/libmemkind.so.0) for x86 64bit CentOS Linux in the `/lib64/`directory of each worker node in cluster.
+- Make sure [Memkind](http://memkind.github.io/memkind/) library installed on every cluster worker node. Compile Memkind based on your system or directly place our pre-built binary of [libmemkind.so.0](https://github.com/Intel-bigdata/OAP/releases/download/v0.8.1-spark-2.4.4/libmemkind.so.0) for x86 64bit CentOS Linux in the `/lib64/`directory of each worker node in cluster.
    The Memkind library depends on `libnuma` at the runtime, so it must already exist in the worker node system.
    Build the latest memkind lib from source:
 
@@ -72,7 +72,7 @@ You will find jar files under oap-common/target and oap-spark/target.
 
 ### Configuration
 
-To enable rdd cache on Intel Optane PMem, you need add the following configurations:
+To enable rdd cache on Intel Optane PMem, you need add the following configurations to `spark-defaults.conf`
 ```
 spark.memory.pmem.initial.path [Your Optane PMem paths seperate with comma]
 spark.memory.pmem.initial.size [Your Optane PMem size in GB]
@@ -80,9 +80,9 @@ spark.memory.pmem.usable.ratio [from 0 to 1, 0.85 is recommended]
 spark.yarn.numa.enabled true
 spark.yarn.numa.num [Your numa node number]
 
-spark.files                       file://${{PATH_TO_OAP_SPARK_JAR}/oap-spark-0.8.0-with-spark-2.4.4.jar,file://${{PATH_TO_OAP_COMMON_JAR}/oap-common-0.8.0-with-spark-2.4.4.jar
-spark.executor.extraClassPath     ./oap-spark-0.8.0-with-spark-2.4.4.jar:./oap-common-0.8.0-with-spark-2.4.4.jar
-spark.driver.extraClassPath       file://${{PATH_TO_OAP_SPARK_JAR}/oap-spark-0.8.0-with-spark-2.4.4.jar:file://${{PATH_TO_OAP_COMMON_JAR}/oap-common-0.8.0-with-spark-2.4.4.jar
+spark.files                       file://${{PATH_TO_OAP_SPARK_JAR}/oap-spark-0.8.1-with-spark-2.4.4.jar,file://${{PATH_TO_OAP_COMMON_JAR}/oap-common-0.8.1-with-spark-2.4.4.jar
+spark.executor.extraClassPath     ./oap-spark-0.8.1-with-spark-2.4.4.jar:./oap-common-0.8.1-with-spark-2.4.4.jar
+spark.driver.extraClassPath       file://${{PATH_TO_OAP_SPARK_JAR}/oap-spark-0.8.1-with-spark-2.4.4.jar:file://${{PATH_TO_OAP_COMMON_JAR}/oap-common-0.8.1-with-spark-2.4.4.jar
 ```
 
 ### Use Optane PMem to cache data
@@ -96,7 +96,7 @@ persist(StorageLevel.PMEM_AND_DISK)
 
 You can use [Hibench](https://github.com/Intel-bigdata/HiBench) to run K-means workload:
 
-After you Build Hibench, then follow Run SparkBench documentation. Here is some tips besides this documentation you need to notice.
+After you Build Hibench, then follow Run SparkBench documentation. Here are some tips besides this documentation you need to notice.
 Follow the documentation to configure these 4 files:
 ```
 HiBench/conf/hadoop.conf
@@ -110,7 +110,7 @@ Then you can run the following 2 commands to run K-means workloads:
 bin/workloads/ml/kmeans/prepare/prepare.sh
 bin/workloads/ml/kmeans/spark/run.sh
 ```
-Here is the log:
+Then you can find the log as below:
 ```
 patching args=
 Parsing conf: /home/wh/HiBench/conf/hadoop.conf
