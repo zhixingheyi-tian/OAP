@@ -1,10 +1,8 @@
-# Shuffle Remote PMem extension for Apache Spark Enabling and Testing Guide
+# Shuffle Remote PMem extension for Apache Spark Guide
 
 June 2020
 
-Revision 1.4
 
-[Notes](#notes)  
 [1. RPMem shuffle extension introduction](#rpmem-shuffle-extension-introduction)  
 [2. Recommended HW environment](#recommended-hw-environment)  
 [3. Install and configure PMem](#install-and-configure-pmem)  
@@ -14,7 +12,7 @@ Revision 1.4
 [7. RPMem Shuffle Extension for Spark Testing](#rpmem-shffle-extension-for-spark-testing)  
 [Reference](#reference)   
 
-## <a id="notes"></a>Notes 
+
 
 Shuffle RPMem extension for Spark (AKA. RPMem shuffle extension, previously Spark-PMoF) depends on multiple
 native libraries like libfabrics, libcuckoo, PMDK. This enabling guide
@@ -99,14 +97,14 @@ communication, so a RDMA capable NIC is recommended. Libfabric supports
 RoCE, iWrap, IB protocol, so various RNICs with different protocol can
 be used.
 
-### 2.3 recommended PMEMM configuration
+### 2.3 Recommended PMEM configuration
 -----------------------------------
 
 It is recommended to install 4+ PMem DIMMs on the SUT, but you can
 adjust the numbers accordingly. In this enabling guide, 4x 128GB PMEMM
 was installed on the SUT as an exmaple. 
 
-### 2.4 recommended PMEM BKC (optional) 
+### 2.4 Recommended PMEM BKC (optional) 
 --------------------------
 
 This deplopment guide was based on ww08.2019  BKC (best known configuration). Please contact your HW vendor for latest BKC.
@@ -726,8 +724,8 @@ spark.driver.memory    10g
 spark.yarn.driver.memoryOverhead 5g
 
 spark.io.compression.codec                                  snappy
-spark.driver.extraClassPath                                 /$path/oap-shuffle/RPMem-shuffle/core/target/oap-rpmem-shuffle-java-0.8.1-jar-with-dependencies.jar
-spark.executor.extraClassPath                               /$path/oap-shuffle/RPMem-shuffle/core/target/oap-rpmem-shuffle-java-0.8.1-jar-with-dependencies.jar
+spark.driver.extraClassPath                                 /$path /Spark-PMoF/core/target/Spark-PMoF-1.0-jar-with-dependencies.jar
+spark.executor.extraClassPath                               /$path/Spark-PMoF/core/target/Spark-PMoF-1.0-jar-with-dependencies.jar
 spark.shuffle.manager                                       org.apache.spark.shuffle.pmof.PmofShuffleManager
 spark.shuffle.pmof.enable_rdma                              true
 spark.shuffle.pmof.enable_pmem                              true
