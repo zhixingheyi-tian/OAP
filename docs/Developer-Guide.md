@@ -3,7 +3,7 @@
 **NOTE**: This document is for the whole project of OAP about building, you can learn more detailed information from every module's  document.
 * [SQL Index and Data Source Cache](../oap-cache/oap/docs/Developer-Guide.md)
 * [RDD Cache PMem Extension](../oap-spark/README.md#compiling)
-* [Shuffle Remote PMem Extension](../oap-shuffle/RPMem-shuffle/README.md#5-install-dependencies-for-rpmem-shuffle-extension)
+* [Shuffle Remote PMem Extension](../oap-shuffle/RPMem-shuffle/README.md#install-dependencies-for-shuffle-remote-pmem-extension)
 * [Remote Shuffle](../oap-shuffle/remote-shuffle/README.md#build-and-deploy)
 
 ## OAP Building
