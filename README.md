@@ -3,11 +3,11 @@
 OAP is a project to optimize Spark by providing optimized implementation of packages for various aspects including cache, shuffle, and so on. In this version, we include the optimized implementation of SQL Index and Data Source Cache supporting DRAM and PMem, RDD Cache PMem Extension, Shuffle Remote PMem Extension and Remote Shuffle.
 
 ## Installation Guide
-Please follow the below link for the guide to install OAP to your system.
+Please follow the below link for the guide to compile and install OAP to your system.
 * [OAP Installation Guide](./docs/Installation-Guide.md)
 
 ## User Guide
-Please refer to the corresponding documents for the introduction and how to use the feature.
+Please refer to the corresponding documents below for the introduction and how to use the features.
 
 * [SQL Index and Data Source Cache](./oap-cache/oap/README.md)
 * [RDD Cache PMem Extension](./oap-spark/README.md)
